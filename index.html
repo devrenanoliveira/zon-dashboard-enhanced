@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KPIs | Cobrança Z-ON</title>
+  
+  <!-- Importação do Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  
+  <!-- Importação do arquivo de Estilos CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── HEADER + TAB NAV (wrapper sticky) ─────────────────── -->
+<div style="position:sticky; top:0; z-index:200;">
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" width="86" height="30" viewBox="0 0 86 30" style="display:block;vertical-align:middle"><rect width="86" height="30" rx="5" fill="#080C14"/><text x="43" y="13" text-anchor="middle" dominant-baseline="middle" font-family="'Segoe UI Black','Arial Black',Arial,sans-serif" font-size="13" font-weight="900" letter-spacing="-0.4" fill="#ffffff">Z<tspan fill="#D97706">·</tspan>ON</text><text x="43" y="24" text-anchor="middle" dominant-baseline="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="6.5" font-weight="600" letter-spacing="3" fill="rgba(255,255,255,0.5)">CARD</text></svg></div>
+    <div class="header-sep"></div>
+    <div class="header-title">KPIs | Cobrança</div>
+  </div>
+  <div class="header-right">
+    <div class="header-update">
+      Última atualização: <strong id="lastUpdatedLabel">—</strong><br>
+      <span id="mesReferenciaLabel">—</span>
+    </div>
+    <button class="print-btn" onclick="window.print()" style="display:flex;align-items:center;gap:7px;background:var(--brand-gold);color:#0F2461;border:none;border-radius:8px;padding:8px 16px;font-size:.8rem;font-weight:700;cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Exportar PDF
+    </button>
+  </div>
+</header>
+
+<!-- ── TAB NAV ────────────────────────────────────────────── -->
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" data-tab="resultado-geral">Resultado Geral</button>
+  <button class="tab-btn" data-tab="producao-du">Produtividade Diária</button>
+  <button class="tab-btn" data-tab="recuperacao-du">Recuperação por DU</button>
+  <button class="tab-btn" data-tab="matriz-efic">Matriz de Eficiência</button>
+  <button class="tab-btn" data-tab="carteira-fases">Carteira &amp; Fases</button>
+  <button class="tab-btn" data-tab="segmento-faixa">Segmento de Faixa</button>
+  <button class="tab-btn" data-tab="performance-venc">Performance de Vencimentos</button>
+</nav>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 1 — RESULTADO GERAL
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel active" id="tab-resultado-geral">
+  <p class="sec-label">Visão Executiva</p>
+  <h1 class="sec-title">Resultado Geral de Cobrança</h1>
+  <p class="sec-subtitle" id="rg-subtitle">% da meta atingida e recuperação acumulada do mês corrente vs. meta mensal</p>
+
+  <div class="filter-row" id="rg-mes-filtros"></div>
+  <div class="kpi-grid" id="rg-kpis"></div>
+
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <div class="chart-title">Histórico de Recuperação vs. Meta (R$)</div>
+      <div class="chart-wrap h260"><canvas id="chartHistorico"></canvas></div>
+      <div class="chart-legend" id="legendHistorico"></div>
+    </div>
+  </div>
+  <div style="margin-top:30px; padding-top:24px; border-top:2px solid #E2E8F0; margin-bottom:14px;">
+    <p class="sec-label" style="color:#1baf7a">Eficiência de Cobrança</p>
+    <h2 class="sec-title" style="font-size:1.2rem; margin-bottom:3px">Eficiência de Recuperação — Meta vs. Realizado</h2>
+    <p class="sec-subtitle">Taxa de eficiência mensal: % recuperado sobre carteira ativa, comparada à meta e à projeção do mês</p>
+  </div>
+
+  <div class="kpi-grid" id="efic-kpis"></div>
+
+  <div class="table-card">
+    <div class="table-card-header" style="display:flex; align-items:center; justify-content:space-between;">
+      <span class="chart-title" style="margin:0">Histórico de Eficiência — Jan/26 a Jul/26</span>
+      <span style="font-size:.71rem; color:var(--ink-muted)">Efic. = Recuperado ÷ Carteira × 100 · ICM = Efic. Atual ÷ Meta × 100</span>
+    </div>
+    <div class="table-scroll">
+      <table id="tableEficDedicada">
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Meta Efic.</th>
+            <th>Efic. Atual</th>
+            <th>Efic. Projetada</th>
+            <th>ICM Efic. Atual</th>
+            <th>ICM Efic. Projetado</th>
+          </tr>
+        </thead>
+        <tbody id="tableEficDedicadaBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:18px">
+    <div class="chart-title">Evolução da Eficiência (% sobre Carteira) — Jan a Jul/26</div>
+    <div class="chart-wrap h220"><canvas id="chartEficiencia"></canvas></div>
+  </div>
+
+  <p class="footnote">* Julho 2026 parcial — atualizado diariamente às 09:00. Projeção calculada por regressão linear sobre o ritmo de DUs decorridos. Efic. = Recuperado ÷ Carteira ativa × 100 (%). ICM = Efic. Atual ÷ Meta Efic. × 100.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 2 — PRODUÇÃO POR DU
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab-producao-du">
+  <p class="sec-label">Operacional</p>
+  <h1 class="sec-title">Produção por Dia Útil</h1>
+  <p class="sec-subtitle" id="pdu-subtitle">Produção diária (R$) vs. mês anterior — valores totais da operação</p>
+
+  <div class="filter-row" id="pdu-mes-filtros"></div>
+  <div class="filter-row" id="pdu-comp-filtros" style="display:none"></div>
+
+  <div class="kpi-grid" id="pdu-kpis"></div>
+
+  <div id="pdu-hist-note" style="display:none; margin:2px 0 16px; padding:8px 12px; background:#F8F5E4; border-left:3px solid #eda100; border-radius:4px; font-size:.78rem; color:#52514e;"></div>
+
+  <div id="pdu-detail-wrap">
+  <div class="du-layout">
+    <div class="table-card" style="margin-bottom:0">
+      <div class="table-card-header">
+        <span class="chart-title" style="margin:0" id="pdu-table-title">Detalhe por DU — Mês Atual</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Dia</th>
+              <th>Produção Dia (R$)</th>
+              <th>Prod. Acum. (R$)</th>
+              <th id="pdu-th-ref">Acum. Mês Ant. (R$)</th>
+              <th>Var. (R$)</th>
+              <th>Var. %</th>
+            </tr>
+          </thead>
+          <tbody id="tablePDUBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="insight-panel" id="pdu-insight"></div>
+  </div>
+
+  <div class="filter-row" id="pdu-chart-mes-filtros"></div>
+  <div class="filter-row" id="pdu-chart-comp-filtros" style="display:none"></div>
+
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <div class="chart-title" id="pdu-chart-bar-title">Produção Diária — Comparativo Mensal</div>
+      <div class="chart-wrap h300"><canvas id="chartProducao"></canvas></div>
+      <div class="chart-legend" id="legendProducao"></div>
+    </div>
+    <div class="chart-card wide">
+      <div class="chart-title" id="pdu-chart-acum-title">Produção Acumulada — Comparativo Mensal</div>
+      <div class="chart-wrap h220"><canvas id="chartProducaoAcum"></canvas></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 3 — RECUPERAÇÃO POR DU
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab-recuperacao-du">
+  <p class="sec-label">Financeiro</p>
+  <h1 class="sec-title">Recuperação por Dia Útil</h1>
+  <p class="sec-subtitle" id="rdu-subtitle">Valor recuperado (R$) por DU — mês atual vs. mês anterior</p>
+
+  <div class="filter-row" id="rdu-mes-filtros"></div>
+  <div class="kpi-grid" id="rdu-kpis"></div>
+
+  <div id="rdu-hist-note" style="display:none; margin:2px 0 16px; padding:8px 12px; background:#F8F5E4; border-left:3px solid #eda100; border-radius:4px; font-size:.78rem; color:#52514e;"></div>
+
+  <div id="rdu-detail-wrap">
+  <div class="du-layout">
+    <div class="table-card" style="margin-bottom:0">
+      <div class="table-card-header">
+        <span class="chart-title" style="margin:0" id="rdu-table-title">Detalhe por DU — Mês Atual</span>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>DU</th>
+              <th>Entrada Dia (R$)</th>
+              <th>Realizado Acum. (R$)</th>
+              <th>Comp. Mês Ant. %</th>
+              <th>Recup. Projetada</th>
+              <th>ICM %</th>
+            </tr>
+          </thead>
+          <tbody id="tableRDUBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="insight-panel" id="rdu-insight"></div>
+  </div>
+
+  <div class="filter-row" id="rdu-comp-filter" style="margin-top:4px; display:none"></div>
+
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <div class="chart-title" id="rdu-chart-bar-title">Recuperação por DU — Atual vs. Anterior</div>
+      <div class="chart-wrap h300"><canvas id="chartRecupDU"></canvas></div>
+      <div class="chart-legend" id="legendRecupDU"></div>
+    </div>
+    <div class="chart-card wide">
+      <div class="chart-title" id="rdu-chart-acum-title">Recuperação Acumulada no Mês (R$)</div>
+      <div class="chart-wrap h220"><canvas id="chartRecupAcum"></canvas></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 4 — CARTEIRA E FASES
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab-carteira-fases">
+  <p class="sec-label">Carteira</p>
+  <h1 class="sec-title">Carteira &amp; Fases</h1>
+  <p class="sec-subtitle" id="cf-subtitle">Visão geral da carteira ativa, distribuição pré/pós prejuízo e evolução trimestral</p>
+
+  <div class="filter-row" id="cf-mes-filtros"></div>
+  <div class="kpi-grid" id="cf-kpis"></div>
+
+  <div class="toggle-group">
+    <button class="toggle-btn active" data-cf="ambos" onclick="cfSetVista('ambos')">Ambos</button>
+    <button class="toggle-btn" data-cf="pre"   onclick="cfSetVista('pre')">Pré Prejuízo (B–G, ≤ 180d)</button>
+    <button class="toggle-btn" data-cf="pos"   onclick="cfSetVista('pos')">Pós Prejuízo (H–J, &gt; 180d)</button>
+  </div>
+
+  <div class="two-col">
+    <div class="chart-card">
+      <div class="chart-title" id="cf-donut-title">Distribuição Pré / Pós Prejuízo</div>
+      <div class="chart-wrap h260 donut-wrap">
+        <canvas id="chartDonut"></canvas>
+        <div class="donut-center" id="donutCenter"></div>
+      </div>
+      <div class="chart-legend" id="legendDonut"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Evolução da Carteira — 6 Meses (R$ MM)</div>
+      <div class="chart-wrap h260"><canvas id="chartCarteiraEvolucao"></canvas></div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:24px;">
+    <p class="sec-label" style="color:#008300">Resultado de Cobrança</p>
+    <h2 class="sec-title" style="font-size:1.2rem; margin-bottom:3px" id="cf-res-titulo">Resultado Mensal de Recuperação</h2>
+    <p class="sec-subtitle" id="cf-res-subtitulo">Recuperação R$, eficiência % e projeção do mês selecionado</p>
+  </div>
+  <div class="kpi-grid" id="cf-res-kpis"></div>
+
+  <div class="table-card" style="border-top:2px solid #E2E8F0; padding-top:24px;">
+    <div class="table-card-header">
+      <span class="chart-title" style="margin:0">Detalhamento por Faixa de Atraso</span>
+    </div>
+    <div class="table-scroll">
+      <table id="tableFases">
+        <thead>
+          <tr>
+            <th>Faixa de Atraso</th>
+            <th>Carteira (R$)</th>
+            <th>% Carteira</th>
+            <th>Recuperado (R$)</th>
+            <th>Taxa Rec. (%)</th>
+            <th>Meta Efic. (%)</th>
+            <th id="th-efic-col">Efic. Proj. (%)</th>
+            <th>ICM Efic.</th>
+          </tr>
+        </thead>
+        <tbody id="tableFasesBody"></tbody>
+      </table>
+    </div>
+    <div id="tableFasesNote" style="display:none; margin-top:8px; padding:6px 10px; background:#F8F5E4; border-left:3px solid #eda100; border-radius:4px; font-size:.75rem; color:#52514e;"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 5 — SEGMENTO DE FAIXA
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab-segmento-faixa">
+  <p class="sec-label">Resultado por Segmento</p>
+  <h1 class="sec-title">Resultado de Cobrança por Segmento</h1>
+  <p class="sec-subtitle" id="sf-subtitle">Recuperado, projeção e ICM s/ meta — por agrupamento de faixa de atraso</p>
+
+  <div class="filter-row" id="sf-mes-filtros"></div>
+
+  <div class="filter-row">
+    <span class="filter-label">Segmento:</span>
+    <button class="filter-btn active" data-sf="todos" onclick="sfSetSeg('todos')">Todos</button>
+    <button class="filter-btn" data-sf="0" onclick="sfSetSeg('0')">Curto atraso (B)</button>
+    <button class="filter-btn" data-sf="1" onclick="sfSetSeg('1')">Médio atraso (C,D)</button>
+    <button class="filter-btn" data-sf="2" onclick="sfSetSeg('2')">Tardia crítica (E–G)</button>
+    <button class="filter-btn" data-sf="3" onclick="sfSetSeg('3')">Loss (H–J)</button>
+  </div>
+
+  <div class="kpi-grid" id="sf-kpis"></div>
+
+  <div id="sf-hist-note" style="display:none; margin:10px 0 16px; padding:8px 12px; background:#F8F5E4; border-left:3px solid #eda100; border-radius:4px; font-size:.78rem; color:#52514e;"></div>
+
+  <div id="sf-detail-wrap">
+  <div class="seg-tables-grid">
+    <div class="table-card" style="margin-bottom:0">
+      <div class="table-card-header">
+        <span class="chart-title" style="margin:0">Resultado por Segmento (R$)</span>
+      </div>
+      <div class="table-scroll">
+        <table id="tableSegVal">
+          <thead>
+            <tr>
+              <th>Segmento</th>
+              <th>Meta</th>
+              <th>Realizado</th>
+              <th>Projeção</th>
+              <th>Δ Proj. s/ Meta</th>
+            </tr>
+          </thead>
+          <tbody id="tableSegValBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="table-card" style="margin-bottom:0">
+      <div class="table-card-header">
+        <span class="chart-title" style="margin:0">Performance por Segmento</span>
+      </div>
+      <div class="table-scroll">
+        <table id="tableSegEfic">
+          <thead>
+            <tr>
+              <th>Segmento</th>
+              <th>ICM s/ Meta</th>
+              <th>Δ Projeção (R$)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableSegEficBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="padrao-block" id="sf-padrao"></div>
+
+  <div class="chart-grid" style="margin-top:18px">
+    <div class="chart-card">
+      <div class="chart-title">Resultado vs. Meta por Segmento (R$ MM)</div>
+      <div class="chart-wrap h280"><canvas id="chartValorSeg"></canvas></div>
+      <div class="chart-legend" id="legendSeg"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">ICM s/ Meta por Segmento (%)</div>
+      <div class="chart-wrap h280"><canvas id="chartTaxaSeg"></canvas></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 6 — PERFORMANCE DE VENCIMENTOS
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab-performance-venc">
+  <p class="sec-label">Performance de Pagamento</p>
+  <h1 class="sec-title">Pagamento até o Vencimento <span style="color:var(--brand-blue)">(D0)</span> e até <span style="color:var(--brand-gold)">D4</span></h1>
+  <p class="sec-subtitle" id="pv-subtitle">% acumulado pago no vencimento (D0) e 4 dias após (D4 — limite antes da assessoria) · mês atual vs. Média Trimestral</p>
+
+  <div class="perf-summary" id="perfSummary"></div>
+
+  <div class="filter-row" id="pvVencFilter">
+    <span class="filter-label">Vencimento:</span>
+    <button class="filter-btn active" data-pv="todos" onclick="pvSetVenc('todos')">Todos</button>
+    <button class="filter-btn" data-pv="1"  onclick="pvSetVenc('1')">Dia 1</button>
+    <button class="filter-btn" data-pv="5"  onclick="pvSetVenc('5')">Dia 5</button>
+    <button class="filter-btn" data-pv="10" onclick="pvSetVenc('10')">Dia 10</button>
+    <button class="filter-btn" data-pv="15" onclick="pvSetVenc('15')">Dia 15</button>
+    <button class="filter-btn" data-pv="20" onclick="pvSetVenc('20')">Dia 20</button>
+    <button class="filter-btn" data-pv="25" onclick="pvSetVenc('25')">Dia 25</button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="chart-title" style="margin:0">Vencimentos do Mês</span>
+    </div>
+    <div class="table-scroll">
+      <table id="tableVenc">
+        <thead>
+          <tr>
+            <th>Dia Vencto.</th>
+            <th>Média Trim. D0</th>
+            <th>Mês Atual (D0)</th>
+            <th>Var. D0</th>
+            <th>Média Trim. D4</th>
+            <th>Mês Atual (D4)</th>
+            <th>Var. D4</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableVencBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="footnote">D0/D4 = % acumulado recebido até o vencimento / até 4 dias após. Var. = variação sobre a Média Trimestral da mesma janela. * Valor parcial — janela ainda não fechada.</p>
+
+  <div class="chart-card" style="margin-bottom:18px">
+    <div class="chart-title" id="curvaTitulo">Curva de Recuperação por Dia de Atraso (D-13 a D+20)</div>
+    <div class="filter-row" id="curvaMesesFilter"></div>
+    <div class="chart-wrap h340"><canvas id="chartCurva"></canvas></div>
+    <div class="chart-legend" id="legendCurva"></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">Comparativo D0 vs. D4 por Vencimento — Mês Atual vs. Média Trimestral</div>
+    <div class="chart-wrap h260"><canvas id="chartComparativo"></canvas></div>
+    <div class="chart-legend" id="legendComp"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 7 — MATRIZ DE EFICIÊNCIA
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab-matriz-efic">
+  <p class="sec-label">Análise Histórica</p>
+  <h1 class="sec-title">Matriz de Eficiência por Faixa</h1>
+  <p class="sec-subtitle">ICM (%) por faixa de atraso — comparativo trimestral Abr–Jun/26 e projeção Jul/26</p>
+
+  <div class="filter-row">
+    <span class="filter-label">Destacar período:</span>
+    <button class="filter-btn active" data-me="todos" onclick="meSetPeriodo('todos')">Todos</button>
+    <button class="filter-btn" data-me="mar"  onclick="meSetPeriodo('mar')">Mar/26</button>
+    <button class="filter-btn" data-me="abr"  onclick="meSetPeriodo('abr')">Abr/26</button>
+    <button class="filter-btn" data-me="mai"  onclick="meSetPeriodo('mai')">Mai/26</button>
+    <button class="filter-btn" data-me="jun"  onclick="meSetPeriodo('jun')">Jun/26</button>
+    <button class="filter-btn" data-me="jul"  onclick="meSetPeriodo('jul')">Jul/26 Real</button>
+    <button class="filter-btn" data-me="trim" onclick="meSetPeriodo('trim')">Média Trim.</button>
+  </div>
+
+  <div class="table-card" style="margin-bottom:18px">
+    <div class="table-card-header">
+      <span class="chart-title" style="margin:0">ICM (%) por Faixa — Histórico Trimestral + Projeção Jul/26</span>
+    </div>
+    <div class="table-scroll">
+      <table id="tableMatriz">
+        <thead>
+          <tr>
+            <th style="text-align:left">Faixa</th>
+            <th>Mar/26</th>
+            <th>Abr/26</th>
+            <th>Mai/26</th>
+            <th>Jun/26</th>
+            <th>Média Trim.</th>
+            <th>Jul/26 Real*</th>
+            <th style="background:#1e3a8a; color:#93c5fd; letter-spacing:.02em">Jul/26 Proj.</th>
+            <th>Meta</th>
+            <th>Var. s/ Meta</th>
+            <th>Var. Trim.</th>
+          </tr>
+        </thead>
+        <tbody id="tableMatrizBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="destaque-block" id="me-destaque"></div>
+
+  <p class="footnote">ICM = (Recuperado / Meta) × 100. Meta padrão = 100%. Jul/26 Proj. calculado com base no ritmo atual de DUs decorridos. * Jul/26 Real = eficiência parcial acumulada (12 DUs). Dados históricos atualizados manualmente.</p>
+</section>
+
+<div id="chartTooltip"></div>
+
+<!-- Importação do arquivo Javascript Principal -->
+<script src="script.js"></script>
+</body>
+</html>
