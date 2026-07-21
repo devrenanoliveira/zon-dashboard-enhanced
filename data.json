@@ -1,0 +1,1044 @@
+{
+  "meta": {
+    "lastUpdated": "21/07/2026, 15:00",
+    "mesReferencia": "Julho 2026",
+    "mesAnterior": "Junho 2026",
+    "mediaReferencia": "Abr–Jun 2026"
+  },
+  "resultadoGeral": {
+    "metaMensal": 6256206,
+    "recuperacaoAtual": 4612119,
+    "diasUteisTotais": 23,
+    "diasUteisDecorridos": 14,
+    "eficienciaAtual": 73.72,
+    "eficienciaAnterior": 81.42,
+    "taxaRecuperacao": 6.91,
+    "projecaoMes": 7577053,
+    "historico": [
+      {
+        "mes": "Jan/26",
+        "recuperado": 5350226,
+        "meta": 5500000
+      },
+      {
+        "mes": "Fev/26",
+        "recuperado": 5450013,
+        "meta": 5650000
+      },
+      {
+        "mes": "Mar/26",
+        "recuperado": 7114728,
+        "meta": 7300000
+      },
+      {
+        "mes": "Abr/26",
+        "recuperado": 6507784,
+        "meta": 6900000
+      },
+      {
+        "mes": "Mai/26",
+        "recuperado": 7115436,
+        "meta": 7300000
+      },
+      {
+        "mes": "Jun/26",
+        "recuperado": 6413597,
+        "meta": 7877648
+      },
+      {
+        "mes": "Jul/26*",
+        "recuperado": 4612119,
+        "meta": 6256206
+      }
+    ],
+    "eficAtualMes": 4.3,
+    "eficProjMes": 6.91,
+    "metaEficMes": 5.69,
+    "icmEficAtual": 75.54,
+    "icmEficProj": 121.43,
+    "eficienciaHistorico": [
+      {
+        "mes": "Jan/26",
+        "eficAtual": 4.95,
+        "eficProj": 4.95,
+        "metaEfic": null,
+        "icmEficAtual": null,
+        "icmEficProj": null
+      },
+      {
+        "mes": "Fev/26",
+        "eficAtual": 5.09,
+        "eficProj": 5.09,
+        "metaEfic": null,
+        "icmEficAtual": null,
+        "icmEficProj": null
+      },
+      {
+        "mes": "Mar/26",
+        "eficAtual": 6.71,
+        "eficProj": 6.71,
+        "metaEfic": null,
+        "icmEficAtual": null,
+        "icmEficProj": null
+      },
+      {
+        "mes": "Abr/26",
+        "eficAtual": 6.14,
+        "eficProj": 6.14,
+        "metaEfic": null,
+        "icmEficAtual": null,
+        "icmEficProj": null
+      },
+      {
+        "mes": "Mai/26",
+        "eficAtual": 6.71,
+        "eficProj": 6.71,
+        "metaEfic": null,
+        "icmEficAtual": null,
+        "icmEficProj": null
+      },
+      {
+        "mes": "Jun/26",
+        "eficAtual": 6.05,
+        "eficProj": 6.05,
+        "metaEfic": 6.98,
+        "icmEficAtual": 86.68,
+        "icmEficProj": 86.68
+      },
+      {
+        "mes": "Jul/26*",
+        "eficAtual": 4.3,
+        "eficProj": 6.91,
+        "metaEfic": 5.69,
+        "icmEficAtual": 75.54,
+        "icmEficProj": 121.43
+      }
+    ],
+    "diarioAtual": 482290
+  },
+  "producaoPorDU": {
+    "meses": {
+      "Jun/26": {
+        "nome": "Junho 2026",
+        "totalDUs": 30,
+        "dados": [
+          {
+            "du": 1,
+            "val": 67792.53
+          },
+          {
+            "du": 2,
+            "val": 71651.82
+          },
+          {
+            "du": 3,
+            "val": 47665.56
+          },
+          {
+            "du": 4,
+            "val": 3123.62
+          },
+          {
+            "du": 5,
+            "val": 58971.4
+          },
+          {
+            "du": 6,
+            "val": 19600.26
+          },
+          {
+            "du": 7,
+            "val": 1510.3
+          },
+          {
+            "du": 8,
+            "val": 48650.34
+          },
+          {
+            "du": 9,
+            "val": 47658.81
+          },
+          {
+            "du": 10,
+            "val": 58030.9
+          },
+          {
+            "du": 11,
+            "val": 47903.21
+          },
+          {
+            "du": 12,
+            "val": 28281.43
+          },
+          {
+            "du": 13,
+            "val": 12762.6
+          },
+          {
+            "du": 14,
+            "val": 1578.17
+          },
+          {
+            "du": 15,
+            "val": 50316.26
+          },
+          {
+            "du": 16,
+            "val": 45188.02
+          },
+          {
+            "du": 17,
+            "val": 55833.74
+          },
+          {
+            "du": 18,
+            "val": 52657.64
+          },
+          {
+            "du": 19,
+            "val": 36727.58
+          },
+          {
+            "du": 20,
+            "val": 10398.44
+          },
+          {
+            "du": 21,
+            "val": 3520.43
+          },
+          {
+            "du": 22,
+            "val": 44413.13
+          },
+          {
+            "du": 23,
+            "val": 36221.21
+          },
+          {
+            "du": 24,
+            "val": 57504.58
+          },
+          {
+            "du": 25,
+            "val": 53465.54
+          },
+          {
+            "du": 26,
+            "val": 69165.21
+          },
+          {
+            "du": 27,
+            "val": 18298.49
+          },
+          {
+            "du": 28,
+            "val": 2513.36
+          },
+          {
+            "du": 29,
+            "val": 44039.1
+          },
+          {
+            "du": 30,
+            "val": 36940.61
+          }
+        ]
+      },
+      "Jul/26*": {
+        "nome": "Julho 2026",
+        "totalDUs": 31,
+        "emAndamento": true,
+        "dados": [
+          {
+            "du": 1,
+            "val": 60904.09
+          },
+          {
+            "du": 2,
+            "val": 43747.53
+          },
+          {
+            "du": 3,
+            "val": 45843.9
+          },
+          {
+            "du": 4,
+            "val": 22618.84
+          },
+          {
+            "du": 5,
+            "val": 2328.74
+          },
+          {
+            "du": 6,
+            "val": 43202.37
+          },
+          {
+            "du": 7,
+            "val": 47300.79
+          },
+          {
+            "du": 8,
+            "val": 43686.48
+          },
+          {
+            "du": 9,
+            "val": 45147.51
+          },
+          {
+            "du": 10,
+            "val": 31592.68
+          },
+          {
+            "du": 11,
+            "val": 12548.09
+          },
+          {
+            "du": 12,
+            "val": 1284.86
+          },
+          {
+            "du": 13,
+            "val": 32784.94
+          },
+          {
+            "du": 14,
+            "val": 54052.35
+          },
+          {
+            "du": 15,
+            "val": 49209.51
+          },
+          {
+            "du": 16,
+            "val": 50004.04
+          },
+          {
+            "du": 17,
+            "val": 46032.03
+          },
+          {
+            "du": 18,
+            "val": 16814.28
+          },
+          {
+            "du": 19,
+            "val": 4706.81
+          },
+          {
+            "du": 20,
+            "val": 47929.75
+          }
+        ]
+      }
+    }
+  },
+  "recuperacaoPorDU": {
+    "totalDUs": 23,
+    "metaMensal": 6256206,
+    "mesAtual": [
+      {
+        "du": 1,
+        "val": 359464
+      },
+      {
+        "du": 2,
+        "val": 224507
+      },
+      {
+        "du": 3,
+        "val": 277176
+      },
+      {
+        "du": 4,
+        "val": 566915
+      },
+      {
+        "du": 5,
+        "val": 267560
+      },
+      {
+        "du": 6,
+        "val": 210889
+      },
+      {
+        "du": 7,
+        "val": 109274
+      },
+      {
+        "du": 8,
+        "val": 509843
+      },
+      {
+        "du": 9,
+        "val": 162271
+      },
+      {
+        "du": 10,
+        "val": 125356
+      },
+      {
+        "du": 11,
+        "val": 534363
+      },
+      {
+        "du": 12,
+        "val": 311201
+      },
+      {
+        "du": 13,
+        "val": 471009
+      },
+      {
+        "du": 14,
+        "val": 482290
+      }
+    ],
+    "mesAnterior": [
+      {
+        "du": 1,
+        "val": 346911
+      },
+      {
+        "du": 2,
+        "val": 230662
+      },
+      {
+        "du": 3,
+        "val": 333348
+      },
+      {
+        "du": 4,
+        "val": 353699
+      },
+      {
+        "du": 5,
+        "val": 521167
+      },
+      {
+        "du": 6,
+        "val": 195185
+      },
+      {
+        "du": 7,
+        "val": 315650
+      },
+      {
+        "du": 8,
+        "val": 185389
+      },
+      {
+        "du": 9,
+        "val": 68594
+      },
+      {
+        "du": 10,
+        "val": 554937
+      },
+      {
+        "du": 11,
+        "val": 376982
+      },
+      {
+        "du": 12,
+        "val": 221104
+      },
+      {
+        "du": 13,
+        "val": 199611
+      },
+      {
+        "du": 14,
+        "val": 240005
+      },
+      {
+        "du": 15,
+        "val": 649178
+      },
+      {
+        "du": 16,
+        "val": 169837
+      },
+      {
+        "du": 17,
+        "val": 130568
+      },
+      {
+        "du": 18,
+        "val": 270417
+      },
+      {
+        "du": 19,
+        "val": 425140
+      },
+      {
+        "du": 20,
+        "val": 133977
+      },
+      {
+        "du": 21,
+        "val": 491236
+      }
+    ]
+  },
+  "carteiraFases": {
+    "totalCarteira": 107300791,
+    "preJuizo": {
+      "valor": 32440301,
+      "percentual": 30.23,
+      "taxaRec": 13.38,
+      "variacao": 0
+    },
+    "posJuizo": {
+      "valor": 74860490,
+      "percentual": 69.77,
+      "taxaRec": 0.36,
+      "variacao": 0
+    },
+    "projecaoRecuperacao": 7577053,
+    "evolucao": [
+      {
+        "mes": "Mar",
+        "pre": 34601548,
+        "pos": 57366424
+      },
+      {
+        "mes": "Abr",
+        "pre": 34636634,
+        "pos": 61700889
+      },
+      {
+        "mes": "Mai",
+        "pre": 34007698,
+        "pos": 68283708
+      },
+      {
+        "mes": "Jun",
+        "pre": 33772997,
+        "pos": 72236355
+      },
+      {
+        "mes": "Jul*",
+        "pre": 32440301,
+        "pos": 74860490
+      }
+    ],
+    "fases": [
+      {
+        "faixa": "B (05–30d)",
+        "valor": 8196614,
+        "pct": 7.64,
+        "taxaRec": 43.98
+      },
+      {
+        "faixa": "C (31–65d)",
+        "valor": 4070731,
+        "pct": 3.79,
+        "taxaRec": 9.97
+      },
+      {
+        "faixa": "D (66–90d)",
+        "valor": 4463355,
+        "pct": 4.16,
+        "taxaRec": 3.34
+      },
+      {
+        "faixa": "E (91–120d)",
+        "valor": 5259703,
+        "pct": 4.9,
+        "taxaRec": 1.56
+      },
+      {
+        "faixa": "F (121–150d)",
+        "valor": 5927284,
+        "pct": 5.52,
+        "taxaRec": 1.04
+      },
+      {
+        "faixa": "G (151–180d)",
+        "valor": 4522615,
+        "pct": 4.22,
+        "taxaRec": 0.82
+      },
+      {
+        "faixa": "H (181–360d)",
+        "valor": 28470772,
+        "pct": 26.53,
+        "taxaRec": 0.55
+      },
+      {
+        "faixa": "I (361–720d)",
+        "valor": 36000316,
+        "pct": 33.55,
+        "taxaRec": 0.26
+      },
+      {
+        "faixa": "J (720d+)",
+        "valor": 10389402,
+        "pct": 9.68,
+        "taxaRec": 0.19
+      }
+    ]
+  },
+  "segmentoFaixa": {
+    "segmentos": [
+      "Curto atraso (B)",
+      "Médio atraso (C, D)",
+      "Tardia crítica (E-G)",
+      "Loss (H-J)"
+    ],
+    "meta": [
+      4444894,
+      1092792,
+      282439,
+      436082
+    ],
+    "recuperado": [
+      3604650,
+      554561,
+      180944,
+      271964
+    ],
+    "projecao": [
+      5921925,
+      911064,
+      297266,
+      446798
+    ],
+    "icm": [
+      133.23,
+      83.37,
+      105.25,
+      102.46
+    ],
+    "taxa": [
+      43.98,
+      6.5,
+      1.15,
+      0.36
+    ]
+  },
+  "performanceVencimentos": {
+    "resumo": {
+      "d0": {
+        "percentual": 53.57,
+        "vsMedia": 55.83,
+        "variacao": -4.0
+      },
+      "d4": {
+        "percentual": 68.62,
+        "vsMedia": 66.46,
+        "variacao": 3.2
+      },
+      "emMaturacao": {
+        "atual": 1,
+        "total": 7
+      }
+    },
+    "vencimentos": [
+      {
+        "dia": 1,
+        "mediaTrimD0": 51.44,
+        "mesD0": 57.39,
+        "varD0": 11.6,
+        "mediaTrimD4": 64.28,
+        "mesD4": 68.09,
+        "varD4": 5.9,
+        "status": "maturado"
+      },
+      {
+        "dia": 5,
+        "mediaTrimD0": 55.49,
+        "mesD0": 51.35,
+        "varD0": -7.5,
+        "mediaTrimD4": 71.03,
+        "mesD4": 72.24,
+        "varD4": 1.7,
+        "status": "maturado"
+      },
+      {
+        "dia": 10,
+        "mediaTrimD0": 58.42,
+        "mesD0": 63.04,
+        "varD0": 7.9,
+        "mediaTrimD4": 67.24,
+        "mesD4": 67.98,
+        "varD4": 1.1,
+        "status": "maturado"
+      },
+      {
+        "dia": 11,
+        "mediaTrimD0": 58.78,
+        "mediaTrimD4": 67.23,
+        "mesD0": 58.07,
+        "varD0": -1.2,
+        "mesD4": 68.4,
+        "varD4": 1.7,
+        "status": "maturado"
+      },
+      {
+        "dia": 15,
+        "mediaTrimD0": 55.02,
+        "mesD0": 38.01,
+        "varD0": -30.9,
+        "mediaTrimD4": 62.54,
+        "mesD4": 66.38,
+        "varD4": 6.1,
+        "status": "maturado"
+      },
+      {
+        "dia": 20,
+        "mediaTrimD0": 43.85,
+        "mesD0": 46.59,
+        "varD0": 6.2,
+        "mediaTrimD4": 54.68,
+        "mesD4": 46.59,
+        "varD4": null,
+        "status": "maturando",
+        "parcial": true,
+        "diaCorrido": 1
+      },
+      {
+        "dia": 25,
+        "mediaTrimD0": 44.67,
+        "mesD0": null,
+        "varD0": null,
+        "mediaTrimD4": 55.45,
+        "mesD4": null,
+        "varD4": null,
+        "status": "pendente"
+      }
+    ],
+    "curvaRecuperacao": {
+      "dias": [
+        -13,
+        -11,
+        -10,
+        -9,
+        -8,
+        -7,
+        -6,
+        -5,
+        -4,
+        -3,
+        -2,
+        -1,
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "meses": {
+        "Abr/26": [
+          null,
+          null,
+          null,
+          3.56,
+          6.84,
+          9.96,
+          13.67,
+          18.76,
+          24.96,
+          32.1,
+          39.65,
+          44.39,
+          56.36,
+          62.41,
+          64,
+          66,
+          67,
+          68.34,
+          69.3,
+          67.65,
+          70.39,
+          71.38,
+          72.12,
+          70,
+          70.49,
+          70.93,
+          71.31,
+          73.65,
+          71.93,
+          74.19,
+          74.48,
+          73.25,
+          75.6
+        ],
+        "Mai/26": [
+          null,
+          null,
+          null,
+          3.4,
+          5.24,
+          8.65,
+          11.03,
+          15.41,
+          18.26,
+          23.37,
+          27.92,
+          34.9,
+          51.09,
+          54.46,
+          57.37,
+          58.9,
+          60.83,
+          63.04,
+          64.17,
+          65.31,
+          66.09,
+          66.87,
+          68.89,
+          69.52,
+          68.47,
+          68.87,
+          71.6,
+          69.94,
+          70.56,
+          72.75,
+          71.09,
+          73.67,
+          72.62
+        ],
+        "Jun/26": [
+          null,
+          null,
+          null,
+          4.67,
+          7.7,
+          11.2,
+          15.39,
+          20.29,
+          23.29,
+          26.63,
+          32.12,
+          39.39,
+          50.65,
+          54.64,
+          57.83,
+          58.83,
+          60.11,
+          61.98,
+          63.19,
+          64.19,
+          65.02,
+          65.93,
+          65.6,
+          68.79,
+          69.84,
+          68.13,
+          70.45,
+          68.85,
+          69.29,
+          72.03,
+          69.53,
+          72.78,
+          73.37
+        ],
+        "Jul/26": [
+          null,
+          0.01,
+          0.02,
+          3.69,
+          6.12,
+          8.65,
+          11.3,
+          15.7,
+          22.82,
+          28.41,
+          34.14,
+          43.44,
+          57.26,
+          64.29,
+          67.02,
+          68.84,
+          69.44,
+          72.87,
+          73.94,
+          74.67,
+          75.22,
+          75.59,
+          74.89,
+          75.09,
+          75.59,
+          75.59,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    }
+  },
+  "matrizEficiencia": {
+    "faixas": [
+      {
+        "id": "B",
+        "label": "B (05–30d)"
+      },
+      {
+        "id": "C",
+        "label": "C (31–65d)"
+      },
+      {
+        "id": "D",
+        "label": "D (66–90d)"
+      },
+      {
+        "id": "E",
+        "label": "E (91–120d)"
+      },
+      {
+        "id": "F",
+        "label": "F (121–150d)"
+      },
+      {
+        "id": "G",
+        "label": "G (151–180d)"
+      },
+      {
+        "id": "H",
+        "label": "H (181–360d)"
+      },
+      {
+        "id": "I",
+        "label": "I (361–720d)"
+      },
+      {
+        "id": "J",
+        "label": "J (720d+)"
+      }
+    ],
+    "historico": {
+      "Mar": [
+        60.8,
+        9.99,
+        4.11,
+        1.99,
+        1.31,
+        0.9,
+        0.72,
+        0.36,
+        0.23
+      ],
+      "Abr": [
+        52.92,
+        13.04,
+        4.92,
+        1.67,
+        1.26,
+        0.83,
+        0.63,
+        0.31,
+        0.2
+      ],
+      "Mai": [
+        60.64,
+        11.66,
+        5.33,
+        1.87,
+        1.36,
+        0.86,
+        0.66,
+        0.4,
+        0.2
+      ],
+      "Jun": [
+        60.72,
+        17.1,
+        3.13,
+        2.66,
+        1.24,
+        1.1,
+        0.86,
+        0.42,
+        0.39
+      ],
+      "Jul": [
+        43.98,
+        9.97,
+        3.34,
+        1.56,
+        1.04,
+        0.82,
+        0.55,
+        0.26,
+        0.19
+      ]
+    },
+    "meta": [
+      62,
+      17.3,
+      4.5,
+      2.7,
+      1.4,
+      1.1,
+      0.84,
+      0.42,
+      0.35
+    ],
+    "julProj": [
+      82.6,
+      13.18,
+      5.05,
+      2.5,
+      1.75,
+      1.2,
+      0.89,
+      0.42,
+      0.31
+    ],
+    "varTrim": [
+      42.19,
+      -5.4,
+      13.23,
+      21.1,
+      35.99,
+      28.97,
+      24.04,
+      11.63,
+      18.05
+    ],
+    "icmMeta": [
+      133.23,
+      76.18,
+      112.25,
+      92.64,
+      125.12,
+      109.12,
+      105.73,
+      100.37,
+      89.06
+    ],
+    "globalHistorico": {
+      "Mar": 7.81,
+      "Abr": 6.77,
+      "Mai": 6.95,
+      "Jun": 6.05,
+      "Jul": 4.3
+    },
+    "globalMeta": 5.69,
+    "globalJulProj": 6.91,
+    "globalVarTrim": 4.84,
+    "globalIcmMeta": 121.43
+  }
+}
