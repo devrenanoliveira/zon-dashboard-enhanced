@@ -1633,7 +1633,7 @@ function initCarteiraFases() {
   const d = DATA.carteiraFases;
   _cfVista = 'ambos';
   const hist = DATA.resultadoGeral.historico;
-  const mesesDisp = hist.slice(-5);
+  const mesesDisp = hist;
   _cfResMes = mesesDisp[mesesDisp.length - 1].mes;
   document.getElementById('cf-mes-filtros').innerHTML =
     '<span class="filter-label">Mês:</span>' +
@@ -2297,7 +2297,7 @@ function meSetPeriodo(p) {
   _meAplicarFoco();
 }
 
-const _ME_COL = { mar: 1, abr: 2, mai: 3, jun: 4, trim: 5, jul: 6 };
+const _ME_COL = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, trim: 7, jul: 8 };
 
 function _meAplicarFoco() {
   const colIdx = _ME_COL[_mePeriodo]; 
@@ -2329,6 +2329,8 @@ function initMatrizEficiencia() {
 
   let rows = '';
   m.faixas.forEach((f, i) => {
+    const jan     = m.historico["Jan"][i];
+    const fev     = m.historico["Fev"][i];
     const mar     = m.historico["Mar"][i];
     const abr     = m.historico["Abr"][i];
     const mai     = m.historico["Mai"][i];
@@ -2341,6 +2343,8 @@ function initMatrizEficiencia() {
 
     rows += `<tr>
       <td>${f.label}</td>
+      ${effCell(jan)}
+      ${effCell(fev)}
       ${effCell(mar)}
       ${effCell(abr)}
       ${effCell(mai)}
@@ -2355,11 +2359,13 @@ function initMatrizEficiencia() {
   });
 
   const gh    = m.globalHistorico;
-  const gMar  = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"], gJulReal = gh["Jul"];
+  const gJan  = gh["Jan"], gFev = gh["Fev"], gMar = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"], gJulReal = gh["Jul"];
   const gTrim = (gAbr + gMai + gJun) / 3;
 
   rows += `<tr class="row-global">
     <td>Eficiência Global</td>
+    ${effCell(gJan)}
+    ${effCell(gFev)}
     ${effCell(gMar)}
     ${effCell(gAbr)}
     ${effCell(gMai)}
