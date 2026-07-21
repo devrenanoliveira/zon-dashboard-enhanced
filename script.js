@@ -170,7 +170,7 @@ function _rgUpdateKPIs() {
 
   function ruleIcmColor(v) {
     if (v == null || isNaN(v)) return 'inherit';
-    return v <= 50 ? '#EF4444' : v <= 90 ? '#F59E0B' : '#10B981';
+    return v < 85 ? '#EF4444' : v < 100 ? '#F59E0B' : '#10B981';
   }
 
   document.getElementById('rg-subtitle').textContent = parcial
@@ -223,7 +223,7 @@ function _rgUpdateKPIs() {
     const idx   = hist.findIndex(x => x.mes === _rgMes);
     const prev  = idx > 0 ? hist[idx - 1] : null;
     const varM  = prev && prev.recuperado > 0 ? (h.recuperado - prev.recuperado) / prev.recuperado * 100 : null;
-    const icmCl = icm >= 100 ? 'green' : icm >= 85 ? 'gold' : '';
+    const icmCl = icm >= 100 ? 'green' : icm >= 85 ? 'gold' : 'red';
     document.getElementById('rg-kpis').innerHTML = `
       <div class="kpi-card blue">
         <div class="kpi-label">Meta Mensal</div>
@@ -423,7 +423,7 @@ function initResultadoGeral() {
   
   function fmtIcmEfic(v) {
     if (v == null) return '<td class="td-muted">—</td>';
-    const color = v <= 50 ? '#EF4444' : v <= 90 ? '#F59E0B' : '#10B981';
+    const color = v < 85 ? '#EF4444' : v < 100 ? '#F59E0B' : '#10B981';
     return `<td><strong style="color: ${color};">${v.toFixed(1)}%</strong></td>`;
   }
 
@@ -929,8 +929,8 @@ function _rduUpdateMes() {
     const totRef   = serieRef ? serieRef.slice(0, serie.length).reduce((s,x) => s+x.val, 0) : null;
     
     const pctMetaVal = totSerie / metaMes * 100;
-    const realColor  = pctMetaVal <= 50 ? '#EF4444' : pctMetaVal <= 90 ? '#F59E0B' : '#10B981';
-    const projColor  = icmProj <= 50 ? '#EF4444' : icmProj <= 90 ? '#F59E0B' : '#10B981';
+    const realColor  = pctMetaVal < 85 ? '#EF4444' : pctMetaVal < 100 ? '#F59E0B' : '#10B981';
+    const projColor  = icmProj < 85 ? '#EF4444' : icmProj < 100 ? '#F59E0B' : '#10B981';
 
     document.getElementById('rdu-kpis').innerHTML = `
       <div class="kpi-card">
@@ -1016,8 +1016,8 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
     const compPct = refAcum && refAcum > 0 ? (acum / refAcum - 1) * 100 : null;
     const proj    = Math.round((acum / (idx + 1)) * totalDUs);
     const icm     = meta > 0 ? proj / meta * 100 : 0;
-    const dotCls  = icm >= 100 ? 'dot-g' : icm >= 90 ? 'dot-y' : 'dot-r';
-    const dotColor= icm >= 100 ? 'var(--delta-pos)' : icm >= 90 ? '#eda100' : 'var(--delta-neg)';
+    const dotCls  = icm >= 100 ? 'dot-g' : icm >= 85 ? 'dot-y' : 'dot-r';
+    const dotColor= icm >= 100 ? 'var(--delta-pos)' : icm >= 85 ? '#eda100' : 'var(--delta-neg)';
     
     const compCell = compPct == null
       ? '<span class="td-muted">—</span>'
@@ -1041,7 +1041,7 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
   const icmProj  = meta > 0 ? proj / meta * 100 : 0;
   const melhorDU = serie.reduce((a,b) => b.val > a.val ? b : a);
   const piorDU   = serie.reduce((a,b) => b.val < a.val ? b : a);
-  const icmCor   = icmProj >= 100 ? 'var(--delta-pos)' : icmProj >= 90 ? '#eda100' : 'var(--delta-neg)';
+  const icmCor   = icmProj >= 100 ? 'var(--delta-pos)' : icmProj >= 85 ? '#eda100' : 'var(--delta-neg)';
   const totRef   = serieRef ? serieRef.slice(0, dusDec).reduce((s,x) => s+x.val, 0) : null;
   const varComp  = totRef && totRef > 0 ? (totSerie / totRef - 1) * 100 : null;
   
@@ -1250,7 +1250,7 @@ function _cfUpdateCarteiraMes() {
     const recup    = hEntry  ? hEntry.recuperado : null;
     const meta     = hEntry  ? hEntry.meta        : null;
     const icmRec   = (recup != null && meta != null && meta > 0) ? recup / meta * 100 : null;
-    const icmCls   = icmRec != null ? (icmRec >= 100 ? 'green' : icmRec >= 85 ? 'gold' : '') : '';
+    const icmCls   = icmRec != null ? (icmRec >= 100 ? 'green' : icmRec >= 85 ? 'gold' : 'red') : '';
 
     document.getElementById('cf-kpis').innerHTML = `
       <div class="kpi-card navy">
@@ -1386,7 +1386,7 @@ function _cfRenderResultado() {
       <div class="kpi-value">${fmt.brl(recuperado)}</div>
       <div class="kpi-sub">Meta: ${fmt.brl(meta)}</div>
       <div class="progress-bar">
-        <div class="progress-fill" style="width:${Math.min(icm,100)}%; background:${icm <= 50 ? '#EF4444' : icm <= 90 ? '#F59E0B' : '#10B981'}"></div>
+        <div class="progress-fill" style="width:${Math.min(icm,100)}%; background:${icm < 85 ? '#EF4444' : icm < 100 ? '#F59E0B' : '#10B981'}"></div>
       </div>
     </div>
     <div class="kpi-card" style="border-left:3px solid ${icmColor(icm)}">
@@ -1607,7 +1607,7 @@ function _cfUpdateTabela() {
       icmVal  = null;
     }
 
-    const icmCls = icmVal != null ? (icmVal >= 100 ? 'td-pos' : 'td-neg') : '';
+    const icmCls = icmVal != null ? (icmVal >= 100 ? 'td-pos' : icmVal >= 85 ? 'td-gold' : 'td-neg') : '';
     const colsCarteira = isJul
       ? `<td class="td-blue">${fmt.brl(f.valor)}</td>
          <td>${fmt.pct(f.pct)}</td>
@@ -1795,10 +1795,10 @@ function _sfRenderKPIsJul() {
   // Padronização inteligente das cores dos cards conforme solicitação:
   // Recuperado Acumulado: cor baseada no ICM atual vs meta (totRec / totMeta)
   const pctRecAtual = totRec / totMeta * 100;
-  const colorRec    = pctRecAtual <= 50 ? '#EF4444' : pctRecAtual <= 90 ? '#F59E0B' : '#10B981';
+  const colorRec    = pctRecAtual < 85 ? '#EF4444' : pctRecAtual < 100 ? '#F59E0B' : '#10B981';
 
   // Projeção do Mês & ICM Geral s/ Meta: fundo verde claro e valores coloridos com as 3 cores padrão
-  const colorProj   = icmGeral <= 50 ? '#EF4444' : icmGeral <= 90 ? '#F59E0B' : '#10B981';
+  const colorProj   = icmGeral < 85 ? '#EF4444' : icmGeral < 100 ? '#F59E0B' : '#10B981';
   
   // Melhor Resultado (ICM): cor baseada na performance do melhor segmento
   const melhorIcmVal = d.icm[melhorIcmIdx];
@@ -1873,7 +1873,7 @@ function initSegmentoFaixa() {
   }).join('');
 
   document.getElementById('tableSegEficBody').innerHTML = d.segmentos.map((seg, i) => {
-    const icmCls  = d.icm[i] >= 100 ? 'td-pos' : 'td-neg';
+    const icmCls  = d.icm[i] >= 100 ? 'td-pos' : d.icm[i] >= 85 ? 'td-gold' : 'td-neg';
     const delta   = d.projecao[i] - d.meta[i];
     const deltaCls = delta >= 0 ? 'td-pos' : 'td-neg';
     const sinal   = delta >= 0 ? '+' : '';
