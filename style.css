@@ -217,6 +217,7 @@ tbody td:first-child { text-align: left; font-weight: 500; }
 .td-blue   { color: var(--brand-blue); font-weight: 700; }
 .td-pos    { color: var(--delta-pos); font-weight: 600; }
 .td-neg    { color: var(--delta-neg); font-weight: 600; }
+.td-gold   { color: var(--brand-gold); font-weight: 600; }
 .td-muted  { color: var(--ink-muted); }
 tr.row-selected td { background: #EFF6FF !important; font-weight: 700; }
 .td-dim    { color: var(--ink-muted); font-style: italic; }
