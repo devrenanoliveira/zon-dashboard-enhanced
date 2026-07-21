@@ -540,6 +540,48 @@ tbody tr.row-global td {
   .chart-wrap.h300 { height: 180px; }
   .chart-wrap.h260 { height: 170px; }
 }
+/* ── DARK MODE ──────────────────────────────────────────────── */
+body.dark {
+  --surface:       #0f172a;
+  --surface-card:  #1e293b;
+  --surface-chart: #1e293b;
+  --ink-primary:   #f1f5f9;
+  --ink-secondary: #94a3b8;
+  --ink-muted:     #64748b;
+  --gridline:      #334155;
+  --baseline:      #475569;
+}
+body.dark .kpi-value        { color: #f1f5f9; }
+body.dark .kpi-card         { border-color: #334155; }
+body.dark .chart-card       { border: 1px solid #334155; }
+body.dark .table-card       { border: 1px solid #334155; }
+body.dark .tab-nav          { background: #0f172a; border-bottom-color: #334155; }
+body.dark .tab-btn          { color: #94a3b8; }
+body.dark .tab-btn:hover    { background: #1e293b; color: #f1f5f9; }
+body.dark .tab-btn.active   { color: #f1f5f9; border-bottom-color: #D97706; }
+body.dark .filter-btn       { background: #1e293b; color: #94a3b8; border-color: #334155; }
+body.dark .filter-btn.active{ background: #1e3a5f; color: #f1f5f9; border-color: #2563EB; }
+body.dark .toggle-btn       { background: #1e293b; color: #94a3b8; border-color: #334155; }
+body.dark .toggle-btn.active{ background: #1e3a5f; color: #f1f5f9; }
+body.dark table             { border-color: #334155; }
+body.dark thead th          { background: #0f172a; color: #94a3b8; border-color: #334155; }
+body.dark tbody td          { border-color: #334155; color: #f1f5f9; }
+body.dark tbody tr:nth-child(even) td { background: #182030; }
+body.dark tbody tr:hover td { background: #1e3a5f !important; }
+body.dark tbody tr.row-global td { background: #152540; border-top-color: #1e4080; }
+body.dark td.col-focus      { background: #2d2008 !important; }
+body.dark td.td-julproj     { background: #1e2f20 !important; }
+body.dark .destaque-block   { background: #1e293b; border-color: #334155; }
+body.dark .padrao-block     { background: #1e293b; border-color: #334155; }
+body.dark .insight-ref      { background: #152540; border-color: #1e4080; color: #94a3b8; }
+body.dark .donut-val        { color: #f1f5f9; }
+body.dark .sec-title        { color: #f1f5f9; }
+body.dark .sec-subtitle     { color: #94a3b8; }
+body.dark .kpi-label        { color: #94a3b8; }
+body.dark .delta            { }
+body.dark .header-sep       { background: rgba(255,255,255,.25); }
+body.dark #darkModeBtn      { color: #D97706; }
+
 /* ── PRINT / PDF ────────────────────────────────────────────── */
 @page { size: A4 landscape; margin: 12mm 10mm; }
 @media print {
