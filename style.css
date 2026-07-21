@@ -44,17 +44,17 @@ body {
 .header {
   background: var(--brand-navy);
   color: white;
-  padding: 14px 28px;
+  padding: 11px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 12px rgba(0,0,0,.25);
 }
-.header-left  { display: flex; align-items: center; gap: 14px; }
-.logo         { font-size: 1.45rem; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+.header-left  { display: flex; align-items: center; gap: 16px; }
+.logo         { line-height: 1; }
 .logo em      { color: var(--brand-gold); font-style: normal; }
-.header-sep   { width: 1px; height: 28px; background: rgba(255,255,255,.25); }
-.header-title { font-size: .9rem; font-weight: 500; opacity: .9; }
+.header-sep   { width: 1px; height: 38px; background: rgba(255,255,255,.25); }
+.header-title { font-size: 1rem; font-weight: 600; opacity: .95; letter-spacing: -.01em; }
 .header-right { text-align: right; }
 .header-update{ font-size: .72rem; opacity: .65; line-height: 1.6; }
 .header-update strong { opacity: .9; }
@@ -584,6 +584,8 @@ body.dark .kpi-label        { color: #94a3b8; }
 body.dark .delta            { }
 body.dark .header-sep       { background: rgba(255,255,255,.25); }
 body.dark #darkModeBtn      { color: #D97706; }
+body.dark #logoLight        { display: none !important; }
+body.dark #logoDark         { display: block !important; }
 
 /* ── PRINT / PDF ────────────────────────────────────────────── */
 @page { size: A4 landscape; margin: 12mm 10mm; }
