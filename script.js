@@ -1366,7 +1366,9 @@ function _cfRenderResultado() {
       <div class="kpi-label">Recuperado${parcial ? ' (parcial)' : ''} · ${vistaLabel}</div>
       <div class="kpi-value">${fmt.brl(recuperado)}</div>
       <div class="kpi-sub">Meta: ${fmt.brl(meta)}</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(icm,100)}%"></div></div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${Math.min(icm,100)}%; background:${icm <= 50 ? '#EF4444' : icm <= 90 ? '#F59E0B' : '#10B981'}"></div>
+      </div>
     </div>
     <div class="kpi-card" style="border-left:3px solid ${icmColor(icm)}">
       <div class="kpi-label">ICM s/ Meta${parcial ? ' (atual)' : ''}</div>
