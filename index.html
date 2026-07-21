@@ -241,7 +241,7 @@
       <div class="chart-legend" id="legendDonut"></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Evolução da Carteira — 6 Meses (R$ MM)</div>
+      <div class="chart-title">Evolução da Carteira — Jan a Jul/26 (R$ MM)</div>
       <div class="chart-wrap h260"><canvas id="chartCarteiraEvolucao"></canvas></div>
     </div>
   </div>
@@ -428,6 +428,8 @@
   <div class="filter-row">
     <span class="filter-label">Destacar período:</span>
     <button class="filter-btn active" data-me="todos" onclick="meSetPeriodo('todos')">Todos</button>
+    <button class="filter-btn" data-me="jan"  onclick="meSetPeriodo('jan')">Jan/26</button>
+    <button class="filter-btn" data-me="fev"  onclick="meSetPeriodo('fev')">Fev/26</button>
     <button class="filter-btn" data-me="mar"  onclick="meSetPeriodo('mar')">Mar/26</button>
     <button class="filter-btn" data-me="abr"  onclick="meSetPeriodo('abr')">Abr/26</button>
     <button class="filter-btn" data-me="mai"  onclick="meSetPeriodo('mai')">Mai/26</button>
@@ -445,6 +447,8 @@
         <thead>
           <tr>
             <th style="text-align:left">Faixa</th>
+            <th>Jan/26</th>
+            <th>Fev/26</th>
             <th>Mar/26</th>
             <th>Abr/26</th>
             <th>Mai/26</th>
