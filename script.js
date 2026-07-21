@@ -1267,42 +1267,56 @@ function _cfRenderResultado() {
   const eficEntry  = eficH.find(e => e.mes === _cfResMes);
   const vistaLabel = _cfVista === 'pre' ? 'Pré Prejuízo (B–G)' : _cfVista === 'pos' ? 'Pós Prejuízo (H–J)' : 'Total';
 
-  const idxPre = [0, 1, 2], idxPos = [3];
   let recuperado, meta, projecao, eficAtual, eficProj, splitNote = '';
-
-  const temSplit = _cfVista !== 'ambos' && parcial && sf.segmentos && sf.segmentos.length >= 4;
-  const semSplitHist = _cfVista !== 'ambos' && !parcial;
-
   let eficMetaSplit = null, icmEficAtualSplit = null, icmEficProjSplit = null;
 
-  if (temSplit) {
-    const idx = _cfVista === 'pre' ? idxPre : idxPos;
-    recuperado = idx.reduce((s, i) => s + (sf.recuperado[i] || 0), 0);
-    meta       = idx.reduce((s, i) => s + (sf.meta[i]      || 0), 0);
-    projecao   = idx.reduce((s, i) => s + (sf.projecao[i]  || 0), 0);
-
-    const em       = DATA.matrizEficiencia;
-    const faseIdx  = _cfVista === 'pre' ? [0,1,2,3,4,5] : [6,7,8];
-    const fases    = DATA.carteiraFases.fases;
-    const cartTot  = faseIdx.reduce((s, i) => s + (fases[i]?.valor || 0), 0);
-    if (cartTot > 0) {
-      eficAtual     = faseIdx.reduce((s, i) => s + (fases[i]?.taxaRec || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
-      eficProj      = faseIdx.reduce((s, i) => s + (em.julProj[i]    || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
-      eficMetaSplit = faseIdx.reduce((s, i) => s + (em.meta[i]       || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
-      icmEficAtualSplit = eficMetaSplit > 0 ? eficAtual / eficMetaSplit * 100 : null;
-      icmEficProjSplit  = eficMetaSplit > 0 ? eficProj  / eficMetaSplit * 100 : null;
-    } else {
-      eficAtual = null;
-      eficProj  = null;
-    }
-  } else {
+  if (_cfVista === 'ambos') {
     recuperado = h.recuperado;
     meta       = h.meta;
     projecao   = parcial ? rg.projecaoMes : h.recuperado;
     eficAtual  = eficEntry ? eficEntry.eficAtual : null;
     eficProj   = (parcial && eficEntry) ? eficEntry.eficProj : eficAtual;
-    if (semSplitHist) {
-      splitNote = `<p class="footnote" style="margin-top:10px">* Detalhamento Pré/Pós por mês histórico não disponível nos dados — exibindo total do mês.</p>`;
+  } else {
+    const isPre = _cfVista === 'pre';
+
+    // 1. Mês Atual (ex: Julho): Puxa dinamicamente das faixas de atraso
+    if (parcial && sf.segmentos && sf.segmentos.length >= 4) {
+      const idx = isPre ? [0, 1, 2] : [3];
+      recuperado = idx.reduce((s, i) => s + (sf.recuperado[i] || 0), 0);
+      meta       = idx.reduce((s, i) => s + (sf.meta[i]      || 0), 0);
+      projecao   = idx.reduce((s, i) => s + (sf.projecao[i]  || 0), 0);
+
+      const em       = DATA.matrizEficiencia;
+      const faseIdx  = isPre ? [0,1,2,3,4,5] : [6,7,8];
+      const fases    = DATA.carteiraFases.fases;
+      const cartTot  = faseIdx.reduce((s, i) => s + (fases[i]?.valor || 0), 0);
+      if (cartTot > 0) {
+        eficAtual     = faseIdx.reduce((s, i) => s + (fases[i]?.taxaRec || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
+        eficProj      = faseIdx.reduce((s, i) => s + (em.julProj[i]    || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
+        eficMetaSplit = faseIdx.reduce((s, i) => s + (em.meta[i]       || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
+        icmEficAtualSplit = eficMetaSplit > 0 ? eficAtual / eficMetaSplit * 100 : null;
+        icmEficProjSplit  = eficMetaSplit > 0 ? eficProj  / eficMetaSplit * 100 : null;
+      }
+    }
+    // 2. Meses Anteriores: Lê o detalhamento inserido no JSON (se existir)
+    else if (isPre && h.recupPre != null) {
+      recuperado = h.recupPre;
+      meta       = h.metaPre;
+      projecao   = h.recupPre; // Mês fechado, projeção é o próprio realizado
+    }
+    else if (!isPre && h.recupPos != null) {
+      recuperado = h.recupPos;
+      meta       = h.metaPos;
+      projecao   = h.recupPos;
+    }
+    // 3. Segurança: Se você não preencheu o dado histórico no JSON, exibe total e avisa
+    else {
+      recuperado = h.recuperado;
+      meta       = h.meta;
+      projecao   = h.recuperado;
+      eficAtual  = eficEntry ? eficEntry.eficAtual : null;
+      eficProj   = eficAtual;
+      splitNote = `<p class="footnote" style="margin-top:10px">* Detalhamento Pré/Pós não preenchido no JSON para este mês. Exibindo os valores totais.</p>`;
     }
   }
 
@@ -1311,11 +1325,13 @@ function _cfRenderResultado() {
 
   function icmColor(v) { return v >= 100 ? 'var(--delta-pos)' : v >= 85 ? 'var(--brand-gold)' : 'var(--delta-neg)'; }
 
+  const temSplit = _cfVista !== 'ambos' && parcial && sf.segmentos && sf.segmentos.length >= 4;
+
   const _eficAtualCard = eficAtual;
   const _eficProjCard  = eficProj;
-  const _eficMetaCard  = temSplit ? eficMetaSplit         : (eficEntry ? eficEntry.metaEfic : null);
-  const _icmAtualCard  = temSplit ? icmEficAtualSplit     : (rg.icmEficAtual || null);
-  const _icmProjCard   = temSplit ? icmEficProjSplit      : (rg.icmEficProj  || null);
+  const _eficMetaCard  = temSplit ? eficMetaSplit : (eficEntry ? eficEntry.metaEfic : null);
+  const _icmAtualCard  = temSplit ? icmEficAtualSplit : (rg.icmEficAtual || null);
+  const _icmProjCard   = temSplit ? icmEficProjSplit  : (rg.icmEficProj  || null);
 
   const projecaoCard = parcial ? `
     <div class="kpi-card blue">
@@ -1336,7 +1352,7 @@ function _cfRenderResultado() {
     <div class="kpi-card gold">
       <div class="kpi-label">Situação</div>
       <div class="kpi-value" style="font-size:1rem; color:#78350F; padding-top:4px">✓ Mês Encerrado</div>
-      <div class="kpi-sub">Resultado final: ${fmt.brl(h.recuperado)}</div>
+      <div class="kpi-sub">Resultado final: ${fmt.brl(recuperado)}</div>
     </div>
     ${_eficAtualCard != null ? `
     <div class="kpi-card">
