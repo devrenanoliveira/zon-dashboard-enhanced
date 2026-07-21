@@ -17,12 +17,12 @@
 "historico": [
       {
         "mes": "Jan/26",
-        "recuperado": 5350226,
+        "recuperado": 5354476.04,
         "meta": 5500000
       },
       {
         "mes": "Fev/26",
-        "recuperado": 5450013,
+        "recuperado": 5458193.88,
         "meta": 5650000
       },
       {
@@ -79,16 +79,16 @@
     "eficienciaHistorico": [
       {
         "mes": "Jan/26",
-        "eficAtual": 4.95,
-        "eficProj": 4.95,
+        "eficAtual": 6.56,
+        "eficProj": 6.56,
         "metaEfic": null,
         "icmEficAtual": null,
         "icmEficProj": null
       },
       {
         "mes": "Fev/26",
-        "eficAtual": 5.09,
-        "eficProj": 5.09,
+        "eficAtual": 6.38,
+        "eficProj": 6.38,
         "metaEfic": null,
         "icmEficAtual": null,
         "icmEficProj": null
@@ -517,6 +517,16 @@
     },
     "projecaoRecuperacao": 7577053,
     "evolucao": [
+      {
+        "mes": "Jan",
+        "pre": 33214011,
+        "pos": 48457872
+      },
+      {
+        "mes": "Fev",
+        "pre": 33062460,
+        "pos": 52453418
+      },
       {
         "mes": "Mar",
         "pre": 34601548,
@@ -949,6 +959,28 @@
       }
     ],
     "historico": {
+      "Jan": [
+        51.41,
+        12.11,
+        2.90,
+        1.51,
+        0.79,
+        0.75,
+        0.60,
+        0.44,
+        0.27
+      ],
+      "Fev": [
+        53.71,
+        10.44,
+        3.94,
+        1.35,
+        1.01,
+        0.64,
+        0.48,
+        0.31,
+        0.16
+      ],
       "Mar": [
         60.8,
         9.99,
@@ -1050,6 +1082,8 @@
       89.06
     ],
     "globalHistorico": {
+      "Jan": 6.56,
+      "Fev": 6.38,
       "Mar": 7.81,
       "Abr": 6.77,
       "Mai": 6.95,
