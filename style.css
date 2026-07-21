@@ -119,6 +119,7 @@ body {
 .kpi-card.navy  { background: var(--brand-navy); }
 .kpi-card.blue  { background: var(--brand-blue); }
 .kpi-card.gold  { background: #FFFBEB; border-color: #FDE68A; }
+.kpi-card.red   { background: #FEF2F2; border-color: #FECACA; }
 
 .kpi-label {
   font-size: .67rem; font-weight: 700; letter-spacing: .07em;
@@ -553,6 +554,8 @@ body.dark {
 }
 body.dark .kpi-value        { color: #f1f5f9; }
 body.dark .kpi-card         { border-color: #334155; }
+body.dark .kpi-card.gold    { background: #2d2008; border-color: #78450a; }
+body.dark .kpi-card.red     { background: #2d0a0a; border-color: #7f1d1d; }
 body.dark .chart-card       { border: 1px solid #334155; }
 body.dark .table-card       { border: 1px solid #334155; }
 body.dark .tab-nav          { background: #0f172a; border-bottom-color: #334155; }
