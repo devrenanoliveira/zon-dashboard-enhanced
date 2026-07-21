@@ -2,6 +2,26 @@
 let DATA = {};
 const STATIC = {};
 
+// ─── DARK MODE ────────────────────────────────────────────────
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark');
+  try { localStorage.setItem('zonDarkMode', isDark); } catch(e) {}
+  const moon = document.getElementById('iconMoon');
+  const sun  = document.getElementById('iconSun');
+  if (moon) moon.style.display = isDark ? 'none'  : '';
+  if (sun)  sun.style.display  = isDark ? '' : 'none';
+}
+// Sincroniza ícone com o estado inicial (definido pelo anti-flash inline no body)
+function _syncDarkIcon() {
+  if (document.body.classList.contains('dark')) {
+    var moon = document.getElementById('iconMoon');
+    var sun  = document.getElementById('iconSun');
+    if (moon) moon.style.display = 'none';
+    if (sun)  sun.style.display  = '';
+  }
+}
+_syncDarkIcon();
+
 // ─── UTILITIES ────────────────────────────────────────────────
 const fmt = {
   brl: v => v == null ? '—' : 'R$ ' + (v >= 1e6
