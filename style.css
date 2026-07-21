@@ -409,11 +409,11 @@ tr.row-selected td { background: #EFF6FF !important; font-weight: 700; }
 
 /* ── KPI CARD VERDE ──────────────────────────────────────── */
 .kpi-card.green {
-  background: #064E3B;
+  background: #ECFDF5;
+  border-color: #A7F3D0;
 }
-.kpi-card.green .kpi-label { color: rgba(255,255,255,.65); }
-.kpi-card.green .kpi-value { color: #fff; }
-.kpi-card.green .kpi-sub   { color: rgba(255,255,255,.65); }
+.kpi-card.green .kpi-label { color: #065F46; }
+.kpi-card.green .kpi-sub   { color: #047857; }
 
 /* ── TOGGLE GROUP ────────────────────────────────────────── */
 .toggle-group {
@@ -554,6 +554,9 @@ body.dark {
 }
 body.dark .kpi-value        { color: #f1f5f9; }
 body.dark .kpi-card         { border-color: #334155; }
+body.dark .kpi-card.green   { background: #0f2d1a; border-color: #166534; }
+body.dark .kpi-card.green .kpi-label { color: #6ee7b7; }
+body.dark .kpi-card.green .kpi-sub   { color: #34d399; }
 body.dark .kpi-card.gold    { background: #2d2008; border-color: #78450a; }
 body.dark .kpi-card.red     { background: #2d0a0a; border-color: #7f1d1d; }
 body.dark .chart-card       { border: 1px solid #334155; }
