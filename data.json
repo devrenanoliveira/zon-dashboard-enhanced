@@ -14,7 +14,7 @@
     "eficienciaAnterior": 81.42,
     "taxaRecuperacao": 6.91,
     "projecaoMes": 7577053,
-    "historico": [
+"historico": [
       {
         "mes": "Jan/26",
         "recuperado": 5350226,
@@ -27,28 +27,48 @@
       },
       {
         "mes": "Mar/26",
-        "recuperado": 7114728,
-        "meta": 7300000
+        "meta": 7114728.34,
+        "recuperado": 7041602.49,
+        "metaPre": 6712300.00,
+        "recupPre": 6700000.00,
+        "metaPos": 402428.34,
+        "recupPos": 341602.49
       },
       {
         "mes": "Abr/26",
-        "recuperado": 6507784,
-        "meta": 6900000
+        "meta": 6507783.98,
+        "recuperado": 6473973.09,
+        "metaPre": 6120000.00,
+        "recupPre": 6100000.00,
+        "metaPos": 387783.98,
+        "recupPos": 373973.09
       },
       {
         "mes": "Mai/26",
-        "recuperado": 7115436,
-        "meta": 7300000
+        "meta": 7115435.61,
+        "recuperado": 7115435.61,
+        "metaPre": 6710000.00,
+        "recupPre": 6710000.00,
+        "metaPos": 405435.61,
+        "recupPos": 405435.61
       },
       {
         "mes": "Jun/26",
-        "recuperado": 6413597,
-        "meta": 7877648
+        "meta": 7877647.52,
+        "recuperado": 6413597.08,
+        "metaPre": 7483035.05,
+        "recupPre": 5984979.20,
+        "metaPos": 394612.47,
+        "recupPos": 428617.88
       },
       {
         "mes": "Jul/26*",
-        "recuperado": 4612119,
-        "meta": 6256206
+        "meta": 6256206.42,
+        "recuperado": 4612119.42,
+        "metaPre": 5820124.91,
+        "recupPre": 4340155.18,
+        "metaPos": 436081.51,
+        "recupPos": 271964.24
       }
     ],
     "eficAtualMes": 4.3,
