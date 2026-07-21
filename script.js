@@ -202,6 +202,8 @@ function _rgUpdateKPIs() {
     const projPct    = d.projecaoMes / d.metaMensal * 100;
     const ritmo      = d.recuperacaoAtual / d.diasUteisDecorridos;
     const varEfic    = d.eficienciaAnterior ? ((d.eficienciaAtual - d.eficienciaAnterior) / d.eficienciaAnterior * 100) : 0;
+    const icmAtualCl = d.eficienciaAtual >= 100 ? 'green' : d.eficienciaAtual >= 85 ? 'gold' : 'red';
+    const barColor   = pctMeta >= 100 ? '#10B981' : pctMeta >= 85 ? '#F59E0B' : '#EF4444';
     document.getElementById('rg-kpis').innerHTML = `
       <div class="kpi-card blue">
         <div class="kpi-label">Meta Mensal</div>
@@ -212,16 +214,16 @@ function _rgUpdateKPIs() {
         <div class="kpi-label">Recuperação Acumulada</div>
         <div class="kpi-value">${fmt.brl(d.recuperacaoAtual)}</div>
         <div class="kpi-sub">${fmt.pct(pctMeta)} da meta mensal</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pctMeta,100)}%"></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pctMeta,100)}%;background:${barColor}"></div></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Ritmo Diário Médio</div>
         <div class="kpi-value">${fmt.brl(ritmo)}</div>
         <div class="kpi-sub">Necessário: ${fmt.brl(d.metaMensal/d.diasUteisTotais)}/DU para bater meta</div>
       </div>
-      <div class="kpi-card gold">
+      <div class="kpi-card ${icmAtualCl}">
         <div class="kpi-label">ICM Atual (% da Meta)</div>
-        <div class="kpi-value">${fmt.pct(d.eficienciaAtual)}</div>
+        <div class="kpi-value" style="color:${icmColor(d.eficienciaAtual)}">${fmt.pct(d.eficienciaAtual)}</div>
         <div class="kpi-sub">
           <span class="kpi-delta ${varEfic>0?'pos':'neg'}">${fmt.deltaSign(varEfic)}${varEfic.toFixed(1).replace('.',',')}%</span>
           vs. ICM junho (${fmt.pct(d.eficienciaAnterior)})
@@ -254,9 +256,9 @@ function _rgUpdateKPIs() {
         <div class="kpi-label">Recuperação · ${mesLabel}</div>
         <div class="kpi-value">${fmt.brl(h.recuperado)}</div>
         <div class="kpi-sub">${fmt.pct(icm)} da meta</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(icm,100)}%"></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(icm,100)}%;background:${icmColor(icm)}"></div></div>
       </div>
-      <div class="kpi-card ${icmCl}" style="border-left:3px solid ${icmColor(icm)}">
+      <div class="kpi-card ${icmCl}">
         <div class="kpi-label">ICM s/ Meta</div>
         <div class="kpi-value" style="color:${icmColor(icm)}">${icm.toFixed(1)}%</div>
         <div class="kpi-sub">Recuperado ÷ Meta × 100</div>
