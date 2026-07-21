@@ -706,7 +706,6 @@ function _pduRenderTabela(serie, serieRef, totalDUs, mesNome, mesRefNome, aberta
     const varVal  = refAcum != null ? acum - refAcum : null;
     const varPct  = refAcum != null && refAcum > 0 ? (acum / refAcum - 1) * 100 : null;
     
-    // Correção: exibe sinal negativo e cor vermelha correta quando o acumulado for inferior ao período de referência
     const valClass = varVal == null ? '' : varVal >= 0 ? 'td-pos' : 'td-neg';
     const valStr   = varVal == null ? '—' : (varVal > 0 ? '+' : '') + fmt.brl(Math.round(varVal));
     const pctClass = varPct == null ? '' : varPct >= 0 ? 'td-pos' : 'td-neg';
@@ -929,12 +928,8 @@ function _rduUpdateMes() {
     const icmProj  = metaMes > 0 ? proj / metaMes * 100 : 0;
     const totRef   = serieRef ? serieRef.slice(0, serie.length).reduce((s,x) => s+x.val, 0) : null;
     
-    // Regras de cor dinâmicas para os cards conforme solicitado:
-    // Realizado Acumulado: usa padrão das 3 cores (vermelho <=50, amarelo <=90, verde >90) aplicado ao ICM da meta atingida até o momento
     const pctMetaVal = totSerie / metaMes * 100;
     const realColor  = pctMetaVal <= 50 ? '#EF4444' : pctMetaVal <= 90 ? '#F59E0B' : '#10B981';
-
-    // Recuperação Projetada & ICM Projetado: fundo verde claro e números coloridos conforme as 3 regras
     const projColor  = icmProj <= 50 ? '#EF4444' : icmProj <= 90 ? '#F59E0B' : '#10B981';
 
     document.getElementById('rdu-kpis').innerHTML = `
@@ -1024,7 +1019,6 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
     const dotCls  = icm >= 100 ? 'dot-g' : icm >= 90 ? 'dot-y' : 'dot-r';
     const dotColor= icm >= 100 ? 'var(--delta-pos)' : icm >= 90 ? '#eda100' : 'var(--delta-neg)';
     
-    // Correção: exibe sinal negativo e cor vermelha correta quando o acumulado for inferior à referência do mês anterior
     const compCell = compPct == null
       ? '<span class="td-muted">—</span>'
       : `<span class="${compPct >= 0 ? 'td-pos' : 'td-neg'}">${compPct > 0 ? '+' : ''}${compPct.toFixed(1)}%</span>`;
@@ -1078,7 +1072,7 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
       <div class="insight-ref-label">${_rduMes && _rduMes.includes('Jul') ? 'Rec. Projetada' : 'Rec. Realizada'}</div>
       <div class="insight-ref-val">${fmt.brl(_rduMes && _rduMes.includes('Jul') ? proj : totSerie)}</div>
       <div class="insight-ref-sub">
-        ICM: <span style="color:${icmCor}; font-weight:700">${(_rduMes && _rduMes.includes('Jul') ? icmProj : totSerie/meta*100).toFixed(1)}%</span>
+        ICM: <span style="color:${icmCor}; font-weight:700">${(_rduMes && _rduMes.includes('Jul' ) ? icmProj : totSerie/meta*100).toFixed(1)}%</span>
       </div>
     </div>
   `;
@@ -1797,25 +1791,39 @@ function _sfRenderKPIsJul() {
   const deltaProj = totProj - totMeta;
   const icmGeral  = totProj / totMeta * 100;
   const melhorIcmIdx = d.icm.indexOf(Math.max(...d.icm));
+  
+  // Padronização inteligente das cores dos cards conforme solicitação:
+  // Recuperado Acumulado: cor baseada no ICM atual vs meta (totRec / totMeta)
+  const pctRecAtual = totRec / totMeta * 100;
+  const colorRec    = pctRecAtual <= 50 ? '#EF4444' : pctRecAtual <= 90 ? '#F59E0B' : '#10B981';
+
+  // Projeção do Mês & ICM Geral s/ Meta: fundo verde claro e valores coloridos com as 3 cores padrão
+  const colorProj   = icmGeral <= 50 ? '#EF4444' : icmGeral <= 90 ? '#F59E0B' : '#10B981';
+  
+  // Melhor Resultado (ICM): cor baseada na performance do melhor segmento
+  const melhorIcmVal = d.icm[melhorIcmIdx];
+  const colorMelhor  = melhorIcmVal < 85 ? '#EF4444' : melhorIcmVal < 100 ? '#F59E0B' : '#10B981';
+
   document.getElementById('sf-kpis').innerHTML = `
     <div class="kpi-card navy">
       <div class="kpi-label">Recuperado Acumulado</div>
-      <div class="kpi-value">${fmt.brl(totRec)}</div>
-      <div class="kpi-sub">Meta: ${fmt.brl(totMeta)}</div>
+      <div class="kpi-value" style="color: ${colorRec};">${fmt.brl(totRec)}</div>
+      <div class="kpi-sub">Meta: ${fmt.brl(totMeta)} (${fmt.pct(pctRecAtual)})</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pctRecAtual,100)}%; background:${colorRec};"></div></div>
     </div>
-    <div class="kpi-card blue">
-      <div class="kpi-label">Projeção do Mês</div>
-      <div class="kpi-value">${fmt.brl(totProj)}</div>
-      <div class="kpi-sub">Δ s/ meta: ${deltaProj>=0?'+':''}${fmt.brl(deltaProj)}</div>
+    <div class="kpi-card" style="background-color: #ECFDF5; border-color: #A7F3D0;">
+      <div class="kpi-label" style="color: #065F46;">Projeção do Mês</div>
+      <div class="kpi-value" style="color: ${colorProj};">${fmt.brl(totProj)}</div>
+      <div class="kpi-sub" style="color: #047857;">Δ s/ meta: ${deltaProj>=0?'+':''}${fmt.brl(deltaProj)}</div>
     </div>
-    <div class="kpi-card ${icmGeral>=100?'green':'gold'}">
-      <div class="kpi-label">ICM Geral s/ Meta</div>
-      <div class="kpi-value">${fmt.pct(icmGeral)}</div>
-      <div class="kpi-sub">${icmGeral>=100?'Resultado acima da meta':'Resultado abaixo da meta'}</div>
+    <div class="kpi-card" style="background-color: #ECFDF5; border-color: #A7F3D0;">
+      <div class="kpi-label" style="color: #065F46;">ICM Geral s/ Meta</div>
+      <div class="kpi-value" style="color: ${colorProj};">${fmt.pct(icmGeral)}</div>
+      <div class="kpi-sub" style="color: #047857;">${icmGeral>=100?'Resultado acima da meta':'Resultado abaixo da meta'}</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Melhor Resultado (ICM)</div>
-      <div class="kpi-value">${fmt.pct(d.icm[melhorIcmIdx])}</div>
+      <div class="kpi-value" style="color: ${colorMelhor};">${fmt.pct(melhorIcmVal)}</div>
       <div class="kpi-sub">${d.segmentos[melhorIcmIdx].split('(')[0].trim()}</div>
     </div>
   `;
