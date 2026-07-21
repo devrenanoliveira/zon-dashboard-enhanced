@@ -75,7 +75,6 @@ function baseOptions(yLabel = '') {
   };
 }
 
-// ─── Variáveis de escopo externo ─────
 const initialized = {};
 let _rgMes = null; 
 
@@ -88,11 +87,9 @@ fetch('./data.json?v=' + Date.now(), { cache: 'no-store' })
   .then(function(json) {
     DATA = json;
 
-    // ─── INIT HEADER ──────────────────────────────────────────────
     document.getElementById('lastUpdatedLabel').textContent = DATA.meta.lastUpdated;
     document.getElementById('mesReferenciaLabel').textContent = DATA.meta.mesReferencia;
 
-    // ─── TAB SWITCHING ────────────────────────────────────────────
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -101,12 +98,10 @@ fetch('./data.json?v=' + Date.now(), { cache: 'no-store' })
         const id = 'tab-' + btn.dataset.tab;
         document.getElementById(id).classList.add('active');
         
-        // Lazy Loading: Renderiza a aba apenas no primeiro clique nela
         if (!initialized[id]) { initialized[id] = true; initTab(id); }
       });
     });
 
-    // ─── INIT FIRST TAB ───────────────────────────────────────────
     initialized['tab-resultado-geral'] = true;
     initTab('tab-resultado-geral');
   })
@@ -675,7 +670,7 @@ function _pduUpdateMes() {
       <div class="kpi-card gold">
         <div class="kpi-label">Comp. Acum. vs. ${mesRef}</div>
         <div class="kpi-value">
-          <span style="color:${varAcum>=0?'var(--delta-pos)':'var(--delta-neg)'}">${varAcum>=0?'+':''}${Math.abs(varAcum).toFixed(1)}%</span>
+          <span style="color:${varAcum>=0?'var(--delta-pos)':'var(--delta-neg)'}">${varAcum>=0?'+':''}${varAcum.toFixed(1)}%</span>
         </div>
         <div class="kpi-sub">mesmos ${serie.length} DUs comparados</div>
       </div>` : ''}
@@ -710,13 +705,20 @@ function _pduRenderTabela(serie, serieRef, totalDUs, mesNome, mesRefNome, aberta
     const refAcum = ref ? acumRef : null;
     const varVal  = refAcum != null ? acum - refAcum : null;
     const varPct  = refAcum != null && refAcum > 0 ? (acum / refAcum - 1) * 100 : null;
+    
+    // Correção: exibe sinal negativo e cor vermelha correta quando o acumulado for inferior ao período de referência
+    const valClass = varVal == null ? '' : varVal >= 0 ? 'td-pos' : 'td-neg';
+    const valStr   = varVal == null ? '—' : (varVal > 0 ? '+' : '') + fmt.brl(Math.round(varVal));
+    const pctClass = varPct == null ? '' : varPct >= 0 ? 'td-pos' : 'td-neg';
+    const pctStr   = varPct == null ? '—' : (varPct > 0 ? '+' : '') + varPct.toFixed(1) + '%';
+
     rows += `<tr>
       <td>Dia ${item.du}</td>
       <td>${fmt.brl(item.val)}</td>
       <td style="font-weight:600">${fmt.brl(acum)}</td>
       <td class="td-muted">${refAcum != null ? fmt.brl(refAcum) : '—'}</td>
-      <td class="${varVal == null ? '' : varVal >= 0 ? 'td-pos' : 'td-neg'}">${varVal == null ? '—' : (varVal >= 0 ? '+' : '') + fmt.brl(Math.round(Math.abs(varVal)))}</td>
-      <td class="${varPct == null ? '' : varPct >= 0 ? 'td-pos' : 'td-neg'}">${varPct == null ? '—' : (varPct >= 0 ? '+' : '') + Math.abs(varPct).toFixed(1) + '%'}</td>
+      <td class="${valClass}">${valStr}</td>
+      <td class="${pctClass}">${pctStr}</td>
     </tr>`;
   });
   document.getElementById('tablePDUBody').innerHTML = rows;
@@ -730,13 +732,17 @@ function _pduRenderTabela(serie, serieRef, totalDUs, mesNome, mesRefNome, aberta
   const piorDU     = serie.reduce((a,b) => b.val < a.val ? b : a);
   const totRef     = serieRef ? serieRef.slice(0, diasDec).reduce((s,x) => s+x.val, 0) : null;
   const varComp    = totRef && totRef > 0 ? (totSerie / totRef - 1) * 100 : null;
+  
+  const varCompCls = varComp == null ? '' : varComp >= 0 ? 'var(--delta-pos)' : 'var(--delta-neg)';
+  const varCompStr = varComp == null ? '' : (varComp > 0 ? '+' : '') + varComp.toFixed(1) + '%';
+
   document.getElementById('pdu-insight').innerHTML = `
     <div>
       <div class="insight-title">Análise do Período</div>
       <p class="insight-text">
         Em <strong>${diasDec} dias</strong> de <strong>${mesNome}</strong> (${utilDec.length} DUs), foram produzidos
         <strong>${fmt.brl(totSerie)}</strong>${varComp != null
-          ? ` — <span style="color:${varComp>=0?'var(--delta-pos)':'var(--delta-neg)'}; font-weight:600">${varComp>=0?'+':''}${Math.abs(varComp).toFixed(1)}%</span>
+          ? ` — <span style="color:${varCompCls}; font-weight:600">${varCompStr}</span>
           vs. mesmos ${diasDec} dias de ${mesRefNome} (${fmt.brl(totRef)}).`
           : `.`}
       </p>
@@ -922,6 +928,15 @@ function _rduUpdateMes() {
     const proj     = Math.round(media * totalDUs);
     const icmProj  = metaMes > 0 ? proj / metaMes * 100 : 0;
     const totRef   = serieRef ? serieRef.slice(0, serie.length).reduce((s,x) => s+x.val, 0) : null;
+    
+    // Regras de cor dinâmicas para os cards conforme solicitado:
+    // Realizado Acumulado: usa padrão das 3 cores (vermelho <=50, amarelo <=90, verde >90) aplicado ao ICM da meta atingida até o momento
+    const pctMetaVal = totSerie / metaMes * 100;
+    const realColor  = pctMetaVal <= 50 ? '#EF4444' : pctMetaVal <= 90 ? '#F59E0B' : '#10B981';
+
+    // Recuperação Projetada & ICM Projetado: fundo verde claro e números coloridos conforme as 3 regras
+    const projColor  = icmProj <= 50 ? '#EF4444' : icmProj <= 90 ? '#F59E0B' : '#10B981';
+
     document.getElementById('rdu-kpis').innerHTML = `
       <div class="kpi-card">
         <div class="kpi-label">Meta do Mês</div>
@@ -930,25 +945,25 @@ function _rduUpdateMes() {
       </div>
       <div class="kpi-card navy">
         <div class="kpi-label">Realizado Acum. (${serie.length} DUs)</div>
-        <div class="kpi-value">${fmt.brl(totSerie)}</div>
-        <div class="kpi-sub">${fmt.pct(totSerie / metaMes * 100)} da meta mensal</div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(totSerie/metaMes*100,100)}%"></div></div>
+        <div class="kpi-value" style="color: ${realColor};">${fmt.brl(totSerie)}</div>
+        <div class="kpi-sub">${fmt.pct(pctMetaVal)} da meta mensal</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pctMetaVal,100)}%; background:${realColor};"></div></div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Média por DU</div>
         <div class="kpi-value">${fmt.brl(media)}</div>
         <div class="kpi-sub">Meta/DU necessária: ${fmt.brl(metaMes / totalDUs)}</div>
       </div>
-      <div class="kpi-card blue">
-        <div class="kpi-label">${isJul ? 'Recuperação Projetada' : 'Recuperado no Mês'}</div>
-        <div class="kpi-value">${fmt.brl(isJul ? proj : totSerie)}</div>
-        <div class="kpi-sub">${isJul ? `base: ritmo atual × ${totalDUs} DUs` : 'Mês encerrado'}</div>
+      <div class="kpi-card" style="background-color: #ECFDF5; border-color: #A7F3D0;">
+        <div class="kpi-label" style="color: #065F46;">${isJul ? 'Recuperação Projetada' : 'Recuperado no Mês'}</div>
+        <div class="kpi-value" style="color: ${projColor};">${fmt.brl(isJul ? proj : totSerie)}</div>
+        <div class="kpi-sub" style="color: #047857;">${isJul ? `base: ritmo atual × ${totalDUs} DUs` : 'Mês encerrado'}</div>
       </div>
-      <div class="kpi-card ${icmProj>=100?'green':'gold'}">
-        <div class="kpi-label">${isJul ? 'ICM Projetado' : 'ICM Realizado'}</div>
-        <div class="kpi-value">${fmt.pct(isJul ? icmProj : totSerie/metaMes*100)}</div>
-        <div class="kpi-sub">${totRef != null
-          ? `vs. ${mesRef} (${serie.length} DUs): ${totRef>0?(totSerie/totRef-1)*100>=0?'+':''+(((totSerie/totRef-1)*100).toFixed(1))+'%':'—'}`
+      <div class="kpi-card" style="background-color: #ECFDF5; border-color: #A7F3D0;">
+        <div class="kpi-label" style="color: #065F46;">${isJul ? 'ICM Projetado' : 'ICM Realizado'}</div>
+        <div class="kpi-value" style="color: ${projColor};">${fmt.pct(isJul ? icmProj : pctMetaVal)}</div>
+        <div class="kpi-sub" style="color: #047857;">${totRef != null
+          ? `vs. ${mesRef} (${serie.length} DUs): ${totRef>0?((totSerie/totRef-1)*100 >= 0 ? '+' : '') + (((totSerie/totRef-1)*100).toFixed(1))+'%':'—'}`
           : 'Sem comparativo por DU disponível'}</div>
       </div>
     `;
@@ -1008,9 +1023,12 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
     const icm     = meta > 0 ? proj / meta * 100 : 0;
     const dotCls  = icm >= 100 ? 'dot-g' : icm >= 90 ? 'dot-y' : 'dot-r';
     const dotColor= icm >= 100 ? 'var(--delta-pos)' : icm >= 90 ? '#eda100' : 'var(--delta-neg)';
-    const compCell= compPct == null
+    
+    // Correção: exibe sinal negativo e cor vermelha correta quando o acumulado for inferior à referência do mês anterior
+    const compCell = compPct == null
       ? '<span class="td-muted">—</span>'
-      : `<span class="${compPct >= 0 ? 'td-pos' : 'td-neg'}">${compPct >= 0 ? '+' : ''}${Math.abs(compPct).toFixed(1)}%</span>`;
+      : `<span class="${compPct >= 0 ? 'td-pos' : 'td-neg'}">${compPct > 0 ? '+' : ''}${compPct.toFixed(1)}%</span>`;
+
     rows += `<tr>
       <td>DU ${item.du}</td>
       <td>${fmt.brl(item.val)}</td>
@@ -1032,6 +1050,9 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
   const icmCor   = icmProj >= 100 ? 'var(--delta-pos)' : icmProj >= 90 ? '#eda100' : 'var(--delta-neg)';
   const totRef   = serieRef ? serieRef.slice(0, dusDec).reduce((s,x) => s+x.val, 0) : null;
   const varComp  = totRef && totRef > 0 ? (totSerie / totRef - 1) * 100 : null;
+  
+  const varCompCls = varComp == null ? '' : varComp >= 0 ? 'var(--delta-pos)' : 'var(--delta-neg)';
+  const varCompStr = varComp == null ? '' : (varComp > 0 ? '+' : '') + varComp.toFixed(1) + '%';
 
   document.getElementById('rdu-insight').innerHTML = `
     <div>
@@ -1039,7 +1060,7 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
       <p class="insight-text">
         Em <strong>${dusDec} DUs</strong> de <strong>${mesNome}</strong>, foram recuperados
         <strong>${fmt.brl(totSerie)}</strong>${varComp != null
-          ? ` — <span style="color:${varComp>=0?'var(--delta-pos)':'var(--delta-neg)'}; font-weight:600">${varComp>=0?'+':''}${Math.abs(varComp).toFixed(1)}%</span>
+          ? ` — <span style="color:${varCompCls}; font-weight:600">${varCompStr}</span>
         vs. mesmos ${dusDec} DUs de ${mesRefNome} (${fmt.brl(totRef)}).`
           : `.`}
       </p>
@@ -2019,8 +2040,8 @@ function initPerfVenc() {
     const dimCls = isMaturando ? '' : (isPendente ? 'td-muted' : '');
     const d0Lbl  = v.mesD0  != null ? fmt.pct(v.mesD0) + (v.parcial ? '*' : '') : '—';
     const d4Lbl  = v.mesD4  != null ? fmt.pct(v.mesD4) + (v.parcial ? '*' : '') : '—';
-    const v0Lbl  = v.varD0  != null ? `<span class="${v.varD0>0?'td-pos':'td-neg'}">${fmt.deltaSign(v.varD0)}${Math.abs(v.varD0).toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
-    const v4Lbl  = v.varD4  != null ? `<span class="${v.varD4>0?'td-pos':'td-neg'}">${fmt.deltaSign(v.varD4)}${Math.abs(v.varD4).toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
+    const v0Lbl  = v.varD0  != null ? `<span class="${v.varD0>0?'td-pos':'td-neg'}">${v.varD0>0?'+':''}${v.varD0.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
+    const v4Lbl  = v.varD4  != null ? `<span class="${v.varD4>0?'td-pos':'td-neg'}">${v.varD4>0?'+':''}${v.varD4.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
     const diaLabel = isMaturando ? `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>` : (isPendente ? `<span class="td-muted">Dia ${v.dia}</span>` : `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`);
     const subLabel = isMaturando ? ` <span class="td-muted" style="font-size:.7rem">(D${v.diaCorrido})</span>` : '';
     return `<tr>
