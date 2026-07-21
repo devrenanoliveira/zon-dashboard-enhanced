@@ -1847,7 +1847,7 @@ function _sfAplicarDestaque() {
 function initSegmentoFaixa() {
   const d = DATA.segmentoFaixa;
   const hist = DATA.resultadoGeral.historico;
-  const mesesSF = hist.slice(-5);
+  const mesesSF = hist;
   _sfMes = mesesSF[mesesSF.length - 1].mes;
   document.getElementById('sf-mes-filtros').innerHTML =
     '<span class="filter-label">Mês:</span>' +
