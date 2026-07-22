@@ -9,7 +9,7 @@ from datetime import datetime
 REPO_NAME        = "devrenanoliveira/zon-dashboard-enhanced"   # <-- confirmar nome exato do repo
 FILE_PATH_IN_REPO = "data.json"
 
-EXPORT_URL = "https://docs.google.com/spreadsheets/d/1IofD6reXoxKuHZqbZniI-Pks1hrD7HMpVReeUitK-qI/export?format=csv&gid=1091839868"
+EXPORT_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_S_-IE3A40T6BkRrRMm6CxN-T72cNnEboQ1QfSY8ebEXveWL2gJ621sSrTFWeV2j3jghsbmX3klta/pub?gid=1091839868&single=true&output=csv"
 
 # ─── HELPERS ──────────────────────────────────────────────────────
 def limpar_float(val):
@@ -40,18 +40,33 @@ def atualizar_dashboard():
         print(f"❌ Erro ao carregar CSV: {e}")
         return
 
+    print(f"📊 CSV carregado: {len(df)} linhas, {len(df.columns)} colunas")
+    print(f"🔍 Primeiras 3 linhas:\n{df.head(3).to_string()}")
+
+    # Detecta automaticamente se o CSV tem 2 colunas (chave|valor)
+    # ou 4 colunas (vazia|linha|chave|valor)
+    num_cols = len(df.columns)
+    if num_cols >= 4:
+        col_chave, col_valor = 2, 3
+    else:
+        col_chave, col_valor = 0, 1
+    print(f"📌 Usando colunas: chave={col_chave}, valor={col_valor}")
+
     # Mapa chave → float limpo  |  mapa chave → string original
-    # CSV tem 4 colunas: (vazia | Linha | Chave | Valor) — chave em col[2], valor em col[3]
     dados_map = {}
     raw_map   = {}
+    SKIP = {"Coluna A (Chave)", "Chave", "Linha", ""}
     for _, row in df.iterrows():
-        if len(row) > 2 and pd.notna(row[2]):
-            chave = str(row[2]).strip()
-            if not chave or chave in ("Coluna A (Chave)", "Chave"):
+        if len(row) > col_chave and pd.notna(row[col_chave]):
+            chave = str(row[col_chave]).strip()
+            if chave in SKIP:
                 continue
-            raw = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
+            raw = str(row[col_valor]).strip() if len(row) > col_valor and pd.notna(row[col_valor]) else None
             raw_map[chave]   = raw
             dados_map[chave] = limpar_float(raw)
+
+    print(f"✅ {len(dados_map)} chaves carregadas do CSV")
+    print(f"🔑 Chaves encontradas: {list(dados_map.keys())[:10]}...")
 
     # ─── GITHUB ───────────────────────────────────────────────────
     token = os.getenv("GITHUB_TOKEN")
