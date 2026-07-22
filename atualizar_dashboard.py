@@ -41,12 +41,15 @@ def atualizar_dashboard():
         return
 
     # Mapa chave → float limpo  |  mapa chave → string original
+    # CSV tem 4 colunas: (vazia | Linha | Chave | Valor) — chave em col[2], valor em col[3]
     dados_map = {}
     raw_map   = {}
     for _, row in df.iterrows():
-        if pd.notna(row[0]):
-            chave = str(row[0]).strip()
-            raw   = str(row[1]).strip() if len(row) > 1 and pd.notna(row[1]) else None
+        if len(row) > 2 and pd.notna(row[2]):
+            chave = str(row[2]).strip()
+            if not chave or chave in ("Coluna A (Chave)", "Chave"):
+                continue
+            raw = str(row[3]).strip() if len(row) > 3 and pd.notna(row[3]) else None
             raw_map[chave]   = raw
             dados_map[chave] = limpar_float(raw)
 
