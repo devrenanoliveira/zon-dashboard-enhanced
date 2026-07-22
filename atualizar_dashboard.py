@@ -9,7 +9,7 @@ from datetime import datetime
 REPO_NAME        = "devrenanoliveira/zon-dashboard-enhanced"   # <-- confirmar nome exato do repo
 FILE_PATH_IN_REPO = "data.json"
 
-EXPORT_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_S_-IE3A40T6BkRrRMm6CxN-T72cNnEboQ1QfSY8ebEXveWL2gJ621sSrTFWeV2j3jghsbmX3klta/pub?gid=1091839868&single=true&output=csv"
+EXPORT_URL = "https://docs.google.com/spreadsheets/d/1IofD6reXoxKuHZqbZniI-Pks1hrD7HMpVReeUitK-qI/export?format=csv&gid=1091839868"
 
 # ─── HELPERS ──────────────────────────────────────────────────────
 def limpar_float(val):
