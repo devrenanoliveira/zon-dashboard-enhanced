@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # necessário para commitar o data.json atualizado
 
     steps:
       - uses: actions/checkout@v4
@@ -21,5 +23,5 @@ jobs:
 
       - name: Executar script de atualização
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # token automático do Actions
         run: python atualizar_dashboard.py
