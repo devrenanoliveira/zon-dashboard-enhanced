@@ -1382,7 +1382,7 @@ function _cfRenderResultado() {
   const projecaoCard = parcial ? `
     <div class="kpi-card ${icmProjCl}">
       <div class="kpi-label">Projeção do Mês</div>
-      <div class="kpi-value">${fmt.brl(projecao)}</div>
+      <div class="kpi-value" style="color:${icmColor(icmProj)}">${fmt.brl(projecao)}</div>
       <div class="kpi-sub">ICM Proj.: <strong style="color:${icmColor(icmProj)}">${icmProj.toFixed(1)}%</strong></div>
     </div>
     <div class="kpi-card">
