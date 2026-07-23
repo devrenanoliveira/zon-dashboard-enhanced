@@ -1377,11 +1377,13 @@ function _cfRenderResultado() {
   const _icmAtualCard  = temSplit ? icmEficAtualSplit : (rg.icmEficAtual || null);
   const _icmProjCard   = temSplit ? icmEficProjSplit  : (rg.icmEficProj  || null);
 
+  const icmProjCl = icmProj >= 100 ? 'green' : icmProj >= 85 ? 'gold' : 'red';
+
   const projecaoCard = parcial ? `
-    <div class="kpi-card blue">
+    <div class="kpi-card ${icmProjCl}">
       <div class="kpi-label">Projeção do Mês</div>
       <div class="kpi-value">${fmt.brl(projecao)}</div>
-      <div class="kpi-sub">ICM Proj.: <strong style="color:#bfdbfe">${icmProj.toFixed(1)}%</strong></div>
+      <div class="kpi-sub">ICM Proj.: <strong style="color:${icmColor(icmProj)}">${icmProj.toFixed(1)}%</strong></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Eficiência Atual</div>
