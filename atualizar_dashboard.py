@@ -3,7 +3,9 @@ import os
 import re
 import pandas as pd
 from github import Github
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+BRT = timezone(timedelta(hours=-3))  # Brasília (UTC-3, sem horário de verão)
 
 # ─── CONFIGURAÇÕES ────────────────────────────────────────────────
 REPO_NAME        = "devrenanoliveira/zon-dashboard-enhanced"   # <-- confirmar nome exato do repo
@@ -191,7 +193,7 @@ def atualizar_dashboard():
     ]
 
     # ─── ATUALIZA O JSON ──────────────────────────────────────────
-    dados["meta"]["lastUpdated"] = datetime.now().strftime("%d/%m/%Y, %H:%M")
+    dados["meta"]["lastUpdated"] = datetime.now(BRT).strftime("%d/%m/%Y, %H:%M")
 
     # RESULTADO GERAL
     rg = dados["resultadoGeral"]
@@ -293,7 +295,7 @@ def atualizar_dashboard():
     print("💾 Atualizando data.json no GitHub...")
     repo.update_file(
         path=contents.path,
-        message=f"Atualização automática — {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+        message=f"Atualização automática — {datetime.now(BRT).strftime('%d/%m/%Y %H:%M')}",
         content=novo_json,
         sha=contents.sha
     )
