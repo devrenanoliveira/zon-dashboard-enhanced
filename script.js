@@ -1385,14 +1385,14 @@ function _cfRenderResultado() {
       <div class="kpi-value" style="color:${icmColor(icmProj)}">${fmt.brl(projecao)}</div>
       <div class="kpi-sub">ICM Proj.: <strong style="color:${icmColor(icmProj)}">${icmProj.toFixed(1)}%</strong></div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card ${_icmAtualCard != null ? (_icmAtualCard >= 100 ? 'green' : _icmAtualCard >= 85 ? 'gold' : 'red') : ''}">
       <div class="kpi-label">Eficiência Atual</div>
-      <div class="kpi-value">${_eficAtualCard != null ? _eficAtualCard.toFixed(2).replace('.',',') + '%' : '—'}</div>
+      <div class="kpi-value" style="color:${_icmAtualCard != null ? icmColor(_icmAtualCard) : 'inherit'}">${_eficAtualCard != null ? _eficAtualCard.toFixed(2).replace('.',',') + '%' : '—'}</div>
       <div class="kpi-sub">ICM Efic.: ${_icmAtualCard != null ? '<strong style="color:'+icmColor(_icmAtualCard)+'">'+_icmAtualCard.toFixed(1)+'%</strong>' : '—'}${_eficMetaCard != null ? ' · meta '+_eficMetaCard.toFixed(2).replace('.',',')+'%' : ''}</div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card ${_icmProjCard != null ? (_icmProjCard >= 100 ? 'green' : _icmProjCard >= 85 ? 'gold' : 'red') : ''}">
       <div class="kpi-label">Eficiência Projetada</div>
-      <div class="kpi-value">${_eficProjCard != null ? _eficProjCard.toFixed(2).replace('.',',') + '%' : '—'}</div>
+      <div class="kpi-value" style="color:${_icmProjCard != null ? icmColor(_icmProjCard) : 'inherit'}">${_eficProjCard != null ? _eficProjCard.toFixed(2).replace('.',',') + '%' : '—'}</div>
       <div class="kpi-sub">ICM Efic. Proj.: ${_icmProjCard != null ? '<strong style="color:'+icmColor(_icmProjCard)+'">'+_icmProjCard.toFixed(1)+'%</strong>' : '—'}</div>
     </div>` : `
     <div class="kpi-card gold">
