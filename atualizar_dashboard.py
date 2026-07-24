@@ -89,30 +89,39 @@ def processar_performance_vencimentos(dados):
     # ── Dados reais: tudo após a linha de cabeçalho (date parsing descarta não-datas) ──
     df = df_raw.iloc[header_row_idx + 1:].reset_index(drop=True).copy()
 
-    # Diagnóstico: mostra o que está na coluna de data antes de parsear
-    amostra_col0 = df[0].dropna().head(5).tolist()
-    print(f"🔍 Amostra coluna 0 (datas raw): {amostra_col0}")
-
-    # ── Parse de datas — suporta texto (dd/mm/aaaa) e serial Excel ──
+    # ── Encontra a coluna de datas dinamicamente ──
     def parse_date(v):
-        if pd.isna(v) or str(v).strip() == '':
+        if pd.isna(v) or str(v).strip() in ('', 'nan'):
             return pd.NaT
         s = str(v).strip()
-        # Tenta parsing de texto primeiro (dd/mm/aaaa ou aaaa-mm-dd)
         try:
             return pd.to_datetime(s, dayfirst=True)
         except Exception:
             pass
-        # Fallback: número serial do Excel (dias desde 30/12/1899)
         try:
             n = float(s)
-            if 30000 < n < 60000:   # range razoável para datas 1982–2064
+            if 30000 < n < 60000:
                 return pd.Timestamp('1899-12-30') + pd.Timedelta(days=int(n))
         except Exception:
             pass
         return pd.NaT
 
-    df['data_venc'] = df[0].apply(parse_date)
+    date_col = None
+    for ci in df.columns:
+        sample = df[ci].dropna().head(20)
+        if len(sample) == 0:
+            continue
+        parsed = sample.apply(parse_date)
+        if parsed.notna().sum() >= 3:
+            date_col = ci
+            print(f"📅 Coluna de datas detectada: col {ci} — amostra: {sample.head(3).tolist()}")
+            break
+
+    if date_col is None:
+        print("❌ Nenhuma coluna com datas encontrada no CSV de vencimentos.")
+        return
+
+    df['data_venc'] = df[date_col].apply(parse_date)
     df = df.dropna(subset=['data_venc'])
     df['dia']     = df['data_venc'].dt.day
     df['mes_ano'] = df['data_venc'].dt.to_period('M')
