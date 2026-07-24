@@ -1000,9 +1000,9 @@ function rduSetComp(mes) {
     btn.classList.toggle('active', btn.dataset.rduc === mes)
   );
   const d = DATA.recuperacaoPorDU;
-  const isJul   = _rduMes && _rduMes.includes('Jul');
-  const serie   = isJul ? d.mesAtual : d.mesAnterior;
-  const mesNome = isJul ? DATA.meta.mesReferencia : DATA.meta.mesAnterior;
+  const isAtual = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
+  const serie   = isAtual ? d.mesAtual : d.mesAnterior;
+  const mesNome = isAtual ? DATA.meta.mesReferencia : DATA.meta.mesAnterior;
   _rduRenderCharts(serie, mesNome);
 }
 
@@ -1033,24 +1033,24 @@ function _rduUpdateMes() {
   const hist    = DATA.resultadoGeral.historico;
   const detail  = document.getElementById('rdu-detail-wrap');
   const note    = document.getElementById('rdu-hist-note');
-  const isJul   = _rduMes && _rduMes.includes('Jul');
-  const isJun   = _rduMes && _rduMes.includes('Jun');
-  const hasDU   = isJul || isJun;
+  const isAtual    = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
+  const isAnterior = _rduMes && DATA.meta.mesAnterior && _rduMes === DATA.meta.mesAnterior;
+  const hasDU      = isAtual || isAnterior;
 
   if (hasDU) {
     note.style.display   = 'none';
     detail.style.display = '';
-    const serie     = isJul ? d.mesAtual    : d.mesAnterior;
-    const serieRef  = isJul ? d.mesAnterior : null;
-    const mesNome   = isJul ? DATA.meta.mesReferencia : DATA.meta.mesAnterior;
-    const mesRef    = isJul ? DATA.meta.mesAnterior   : null;
-    const metaMes   = isJul
+    const serie     = isAtual ? d.mesAtual    : d.mesAnterior;
+    const serieRef  = isAtual ? d.mesAnterior : null;
+    const mesNome   = isAtual ? DATA.meta.mesReferencia : DATA.meta.mesAnterior;
+    const mesRef    = isAtual ? DATA.meta.mesAnterior   : null;
+    const metaMes   = isAtual
       ? d.metaMensal
-      : (hist.find(h => h.mes === 'Jun/26')?.meta || d.metaMensal);
-    const totalDUs = isJul ? d.totalDUs : serie.length;
+      : (hist.find(h => h.mes === DATA.meta.mesAnterior)?.meta || d.metaMensal);
+    const totalDUs = isAtual ? d.totalDUs : serie.length;
 
     document.getElementById('rdu-subtitle').textContent =
-      isJul
+      isAtual
         ? `${mesNome} (${serie.length} de ${totalDUs} DUs) · Meta: ${fmt.brl(metaMes)}`
         : `${mesNome} · ${serie.length} DUs · Meta: ${fmt.brl(metaMes)}`;
 
@@ -1083,13 +1083,13 @@ function _rduUpdateMes() {
         <div class="kpi-sub">Meta/DU necessária: ${fmt.brl(metaMes / totalDUs)}</div>
       </div>
       <div class="kpi-card ${projCl}">
-        <div class="kpi-label">${isJul ? 'Recuperação Projetada' : 'Recuperado no Mês'}</div>
-        <div class="kpi-value" style="color:${projColor}">${fmt.brl(isJul ? proj : totSerie)}</div>
-        <div class="kpi-sub">${isJul ? `base: ritmo atual × ${totalDUs} DUs` : 'Mês encerrado'}</div>
+        <div class="kpi-label">${isAtual ? 'Recuperação Projetada' : 'Recuperado no Mês'}</div>
+        <div class="kpi-value" style="color:${projColor}">${fmt.brl(isAtual ? proj : totSerie)}</div>
+        <div class="kpi-sub">${isAtual ? `base: ritmo atual × ${totalDUs} DUs` : 'Mês encerrado'}</div>
       </div>
       <div class="kpi-card ${projCl}">
-        <div class="kpi-label">${isJul ? 'ICM Projetado' : 'ICM Realizado'}</div>
-        <div class="kpi-value" style="color:${projColor}">${fmt.pct(isJul ? icmProj : pctMetaVal)}</div>
+        <div class="kpi-label">${isAtual ? 'ICM Projetado' : 'ICM Realizado'}</div>
+        <div class="kpi-value" style="color:${projColor}">${fmt.pct(isAtual ? icmProj : pctMetaVal)}</div>
         <div class="kpi-sub">${totRef != null
           ? `vs. ${mesRef} (${serie.length} DUs): ${totRef>0?((totSerie/totRef-1)*100 >= 0 ? '+' : '') + (((totSerie/totRef-1)*100).toFixed(1))+'%':'—'}`
           : 'Sem comparativo por DU disponível'}</div>
@@ -1107,7 +1107,7 @@ function _rduUpdateMes() {
     if (!h) return;
     const mesLabel = h.mes.replace('*','');
     note.innerHTML = `<strong>ℹ️ Detalhamento por DU disponível apenas para ${DATA.meta.mesReferencia} e ${DATA.meta.mesAnterior}.</strong><br>
-      Selecione <strong>Jun/26</strong> ou <strong>Jul/26</strong> para ver a tabela de DUs.`;
+      Selecione <strong>${DATA.meta.mesAnterior || 'mês anterior'}</strong> ou <strong>${DATA.meta.mesReferencia || 'mês atual'}</strong> para ver a tabela de DUs.`;
     document.getElementById('rdu-subtitle').textContent =
       `${mesLabel} — resultado total do mês encerrado`;
     const icm    = h.recuperado / h.meta * 100;
@@ -1202,10 +1202,10 @@ function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) 
       <div class="insight-ref-sub">vs. meta/DU: ${fmt.brl(meta / totalDUs)}</div>
     </div>
     <div class="insight-ref">
-      <div class="insight-ref-label">${_rduMes && _rduMes.includes('Jul') ? 'Rec. Projetada' : 'Rec. Realizada'}</div>
-      <div class="insight-ref-val">${fmt.brl(_rduMes && _rduMes.includes('Jul') ? proj : totSerie)}</div>
+      <div class="insight-ref-label">${isAtual ? 'Rec. Projetada' : 'Rec. Realizada'}</div>
+      <div class="insight-ref-val">${fmt.brl(isAtual ? proj : totSerie)}</div>
       <div class="insight-ref-sub">
-        ICM: <span style="color:${icmCor}; font-weight:700">${(_rduMes && _rduMes.includes('Jul' ) ? icmProj : totSerie/meta*100).toFixed(1)}%</span>
+        ICM: <span style="color:${icmCor}; font-weight:700">${(isAtual ? icmProj : totSerie/meta*100).toFixed(1)}%</span>
       </div>
     </div>
   `;
@@ -1329,24 +1329,24 @@ function _cfUpdateCarteiraMes() {
   const rg  = DATA.resultadoGeral;
 
   const mesRaw = _cfResMes || '';
-  const mesKey = mesRaw.replace(/\/26\*?/, '').trim() || 'Jul';
-  const isJul  = mesKey === 'Jul';
+  const mesKey = mesRaw.replace(/\/\d{2}\*?$/, '').trim() || DATA.meta.mesCurto || 'Jul';
+  const isAtual  = mesKey === (DATA.meta.mesCurto || 'Jul');
 
   const subtitleEl = document.getElementById('cf-subtitle');
   if (subtitleEl) {
-    subtitleEl.textContent = isJul
+    subtitleEl.textContent = isAtual
       ? `Carteira ativa total e distribuição pré/pós prejuízo — ${DATA.meta.mesReferencia}`
-      : `Carteira e resultado referentes a ${mesKey}/26 — faixas refletem posição atual`;
+      : `Carteira e resultado referentes a ${mesRaw.replace('*','')} — faixas refletem posição atual`;
   }
 
   const resTit = document.getElementById('cf-res-titulo');
   const resSub = document.getElementById('cf-res-subtitulo');
   if (resTit) resTit.textContent = `Resultado de Recuperação — ${mesRaw.replace('*','')}`;
-  if (resSub) resSub.textContent = isJul
+  if (resSub) resSub.textContent = isAtual
     ? 'Mês em andamento: parcial atual + projeção do mês completo'
     : 'Resultado final do mês encerrado';
 
-  if (isJul) {
+  if (isAtual) {
     const varPre = d.preJuizo.variacao, varPos = d.posJuizo.variacao;
     document.getElementById('cf-kpis').innerHTML = `
       <div class="kpi-card navy">
@@ -1446,7 +1446,7 @@ function _cfRenderResultado() {
       const cartTot  = faseIdx.reduce((s, i) => s + (fases[i]?.valor || 0), 0);
       if (cartTot > 0) {
         eficAtual     = faseIdx.reduce((s, i) => s + (fases[i]?.taxaRec || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
-        eficProj      = faseIdx.reduce((s, i) => s + (em.julProj[i]    || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
+        eficProj      = faseIdx.reduce((s, i) => s + (em.projAtual[i]  || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
         eficMetaSplit = faseIdx.reduce((s, i) => s + (em.meta[i]       || 0) * (fases[i]?.valor || 0) / 100, 0) / cartTot * 100;
         icmEficAtualSplit = eficMetaSplit > 0 ? eficAtual / eficMetaSplit * 100 : null;
         icmEficProjSplit  = eficMetaSplit > 0 ? eficProj  / eficMetaSplit * 100 : null;
@@ -1699,26 +1699,27 @@ function _cfUpdateTabela() {
   const fases = DATA.carteiraFases.fases;
   const em    = DATA.matrizEficiencia;
   const mesRaw = _cfResMes || '';
-  const mesKey = mesRaw.replace(/\/26\*?/, '').trim() || 'Jul';
-  const isJul     = mesKey === 'Jul';
-  const histData  = !isJul ? (em.historico[mesKey] || null) : null;
-  const hasEfic   = isJul || histData !== null;
+  const mesKey = mesRaw.replace(/\/\d{2}\*?$/, '').trim() || DATA.meta.mesCurto || 'Jul';
+  const isAtual   = mesKey === (DATA.meta.mesCurto || 'Jul');
+  const histData  = !isAtual ? (em.historico[mesKey] || null) : null;
+  const hasEfic   = isAtual || histData !== null;
 
   const thEfic = document.getElementById('th-efic-col');
   if (thEfic) {
-    if (isJul)        thEfic.textContent = 'Efic. Proj. (%)';
+    if (isAtual)        thEfic.textContent = 'Efic. Proj. (%)';
     else if (histData)  thEfic.textContent = `Efic. ${mesKey} (%)`;
     else                thEfic.textContent = 'Efic. (%)';
   }
 
+  const mesLabel = mesRaw.replace('*', '') || mesKey;
   const noteEl = document.getElementById('tableFasesNote');
   if (noteEl) {
-    if (!isJul && hasEfic) {
+    if (!isAtual && hasEfic) {
       noteEl.style.display = 'block';
-      noteEl.textContent = `Carteira (R$) e recuperado por faixa disponíveis apenas para o mês atual. Eficiência e ICM referentes a ${mesKey}/26.`;
-    } else if (!isJul && !hasEfic) {
+      noteEl.textContent = `Carteira (R$) e recuperado por faixa disponíveis apenas para o mês atual. Eficiência e ICM referentes a ${mesLabel}.`;
+    } else if (!isAtual && !hasEfic) {
       noteEl.style.display = 'block';
-      noteEl.textContent = `Detalhamento por faixa não disponível para ${mesKey}/26.`;
+      noteEl.textContent = `Detalhamento por faixa não disponível para ${mesLabel}.`;
     } else {
       noteEl.style.display = 'none';
     }
@@ -1730,8 +1731,8 @@ function _cfUpdateTabela() {
 
     const meta = em.meta[i];
     let eficVal, icmVal, eficCls = 'td-julproj';
-    if (isJul) {
-      eficVal = em.julProj[i];
+    if (isAtual) {
+      eficVal = em.projAtual[i];
       icmVal  = em.icmMeta[i];
     } else if (histData) {
       eficVal = histData[i];
@@ -1743,7 +1744,7 @@ function _cfUpdateTabela() {
     }
 
     const icmCls = icmVal != null ? (icmVal >= 100 ? 'td-pos' : icmVal >= 85 ? 'td-gold' : 'td-neg') : '';
-    const colsCarteira = isJul
+    const colsCarteira = isAtual
       ? `<td class="td-blue">${fmt.brl(f.valor)}</td>
          <td>${fmt.pct(f.pct)}</td>
          <td>${fmt.brl(f.valor * f.taxaRec / 100)}</td>
@@ -1874,15 +1875,15 @@ function sfSetMes(mes) {
 }
 
 function _sfUpdateMes() {
-  const isJul   = _sfMes && _sfMes.includes('Jul');
+  const isAtual = _sfMes && DATA.meta.mesCurto && _sfMes.includes(DATA.meta.mesCurto);
   const detail  = document.getElementById('sf-detail-wrap');
   const note    = document.getElementById('sf-hist-note');
   const subtitle = document.getElementById('sf-subtitle');
 
-  if (isJul) {
+  if (isAtual) {
     detail.style.display = '';
     note.style.display   = 'none';
-    subtitle.textContent = 'Recuperado, projeção e ICM s/ meta — por agrupamento de faixa de atraso · Jul/26 (parcial)';
+    subtitle.textContent = `Recuperado, projeção e ICM s/ meta — por agrupamento de faixa de atraso · ${DATA.meta.mesReferencia || DATA.meta.mesCurto + '/26'} (parcial)`;
     _sfRenderKPIsJul();
   } else {
     const hist = DATA.resultadoGeral.historico;
@@ -1893,7 +1894,7 @@ function _sfUpdateMes() {
     detail.style.display = 'none';
     note.style.display   = '';
     note.innerHTML = `<strong>ℹ️ Detalhamento por segmento disponível apenas para o mês corrente.</strong><br>
-      Selecione <strong>Jul/26</strong> para ver o breakdown por segmento (Curto, Médio, Tardia, Loss).`;
+      Selecione <strong>${DATA.meta.mesReferencia || 'o mês atual'}</strong> para ver o breakdown por segmento (Curto, Médio, Tardia, Loss).`;
 
     const icm     = h.recuperado / h.meta * 100;
     const icmCls  = icm >= 100 ? 'green' : icm >= 85 ? 'gold' : 'red';
@@ -2036,7 +2037,7 @@ function initSegmentoFaixa() {
   const liderPctProj   = (d.projecao[sfMelhorIdx] / sfTotProj * 100).toFixed(1);
 
   document.getElementById('sf-padrao').innerHTML = `
-    <div class="padrao-title">🔍 Padrão Identificado — Resultado por Segmento (Jul/26)</div>
+    <div class="padrao-title">🔍 Padrão Identificado — Resultado por Segmento (${DATA.meta.mesReferencia || (DATA.meta.mesCurto ? DATA.meta.mesCurto + '/26' : 'Jul/26')})</div>
     <p class="padrao-text">
       <strong>${acima.length} de ${d.segmentos.length} segmentos</strong> com resultado projetado acima da meta (ICM ≥ 100%):
       ${acima.map(s => `<strong>${s.split('(')[0].trim()}</strong>`).join(' e ') || '—'}.
@@ -2470,9 +2471,10 @@ function initMatrizEficiencia() {
     const abr     = m.historico["Abr"][i];
     const mai     = m.historico["Mai"][i];
     const jun     = m.historico["Jun"][i];
-    const julReal = m.historico["Jul"][i];
+    const mesCurto = DATA.meta.mesCurto || 'Jul';
+    const julReal = m.historico[mesCurto] ? m.historico[mesCurto][i] : null;
     const trim    = (abr + mai + jun) / 3;
-    const jul     = m.julProj[i];
+    const jul     = m.projAtual[i];
     const meta    = m.meta[i];
     const vTrim   = m.varTrim[i];
 
@@ -2494,7 +2496,9 @@ function initMatrizEficiencia() {
   });
 
   const gh    = m.globalHistorico;
-  const gJan  = gh["Jan"], gFev = gh["Fev"], gMar = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"], gJulReal = gh["Jul"];
+  const _mc   = DATA.meta.mesCurto || 'Jul';
+  const gJan  = gh["Jan"], gFev = gh["Fev"], gMar = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"];
+  const gAtualReal = gh[_mc] ?? null;
   const gTrim = (gAbr + gMai + gJun) / 3;
 
   rows += `<tr class="row-global">
@@ -2506,10 +2510,10 @@ function initMatrizEficiencia() {
     ${effCell(gMai)}
     ${effCell(gJun)}
     ${effCell(gTrim)}
-    ${effCell(gJulReal)}
-    <td class="td-julproj">${m.globalJulProj.toFixed(2)}%</td>
+    ${effCell(gAtualReal)}
+    <td class="td-julproj">${m.globalProjAtual.toFixed(2)}%</td>
     <td>${m.globalMeta.toFixed(2)}%</td>
-    ${varMetaCell(m.globalJulProj, m.globalMeta)}
+    ${varMetaCell(m.globalProjAtual, m.globalMeta)}
     ${varTrimCell(m.globalVarTrim)}
   </tr>`;
 
@@ -2528,13 +2532,14 @@ function initMatrizEficiencia() {
     .filter((_, i) => m.varTrim[i] < 0)
     .map(f => f.id);
 
+  const _mesCurtoLabel = DATA.meta.mesReferencia || (DATA.meta.mesCurto ? DATA.meta.mesCurto + '/26' : 'Jul/26');
   const gIcm = m.globalIcmMeta;
   const globalStatus = gIcm >= 100
-    ? `<strong>ICM Global s/ Meta: ${gIcm.toFixed(1)}%</strong> — eficiência global projetada <strong>acima da meta</strong> em Jul/26, com variação de <strong>${m.globalVarTrim >= 0 ? '+' : ''}${m.globalVarTrim.toFixed(2)} p.p.</strong> vs. média trimestral.`
-    : `<strong>ICM Global s/ Meta: ${gIcm.toFixed(1)}%</strong> — eficiência global projetada <strong>abaixo da meta</strong> em Jul/26, com variação de <strong>${m.globalVarTrim.toFixed(2)} p.p.</strong> vs. média trimestral.`;
+    ? `<strong>ICM Global s/ Meta: ${gIcm.toFixed(1)}%</strong> — eficiência global projetada <strong>acima da meta</strong> em ${_mesCurtoLabel}, com variação de <strong>${m.globalVarTrim >= 0 ? '+' : ''}${m.globalVarTrim.toFixed(2)} p.p.</strong> vs. média trimestral.`
+    : `<strong>ICM Global s/ Meta: ${gIcm.toFixed(1)}%</strong> — eficiência global projetada <strong>abaixo da meta</strong> em ${_mesCurtoLabel}, com variação de <strong>${m.globalVarTrim.toFixed(2)} p.p.</strong> vs. média trimestral.`;
 
   document.getElementById('me-destaque').innerHTML = `
-    <div class="destaque-title">⚡ Destaque Automático — Jul/26</div>
+    <div class="destaque-title">⚡ Destaque Automático — ${_mesCurtoLabel}</div>
     <p class="destaque-text">${globalStatus}</p>
     <p class="destaque-text" style="margin-top:10px">
       <strong>${acimaMeta.length} de ${m.faixas.length} faixas</strong> projetadas acima da meta de eficiência:
@@ -2545,7 +2550,7 @@ function initMatrizEficiencia() {
     </p>
     <p class="destaque-text" style="margin-top:10px">
       <strong>Melhor ICM s/ Meta:</strong> Faixa <strong>${m.faixas[melhorIdx].id}</strong>
-      com <strong style="color:var(--delta-pos)">${m.icmMeta[melhorIdx].toFixed(1)}%</strong> (proj. ${m.julProj[melhorIdx].toFixed(2)}% vs. meta ${m.meta[melhorIdx].toFixed(2)}%).
+      com <strong style="color:var(--delta-pos)">${m.icmMeta[melhorIdx].toFixed(1)}%</strong> (proj. ${m.projAtual[melhorIdx].toFixed(2)}% vs. meta ${m.meta[melhorIdx].toFixed(2)}%).
       <strong>Pior ICM:</strong> Faixa <strong>${m.faixas[piorIdx].id}</strong>
       com <strong style="color:var(--delta-neg)">${m.icmMeta[piorIdx].toFixed(1)}%</strong>.
     </p>
