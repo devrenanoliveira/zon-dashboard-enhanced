@@ -24,4 +24,4 @@ jobs:
       - name: Executar script de atualização
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # token automático do Actions
-        run: python migrar_campos_dinamicos.py
+        run: python atualizar_dashboard.py
