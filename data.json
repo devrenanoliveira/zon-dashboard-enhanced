@@ -18,12 +18,14 @@
       {
         "mes": "Jan/26",
         "recuperado": 5354476.04,
-        "meta": 5500000
+        "meta": 5500000,
+        "diasUteis": 21
       },
       {
         "mes": "Fev/26",
         "recuperado": 5458193.88,
-        "meta": 5650000
+        "meta": 5650000,
+        "diasUteis": 18
       },
       {
         "mes": "Mar/26",
@@ -32,7 +34,8 @@
         "metaPre": 6712300.0,
         "recupPre": 6700000.0,
         "metaPos": 402428.34,
-        "recupPos": 341602.49
+        "recupPos": 341602.49,
+        "diasUteis": 22
       },
       {
         "mes": "Abr/26",
@@ -41,7 +44,8 @@
         "metaPre": 6120000.0,
         "recupPre": 6100000.0,
         "metaPos": 387783.98,
-        "recupPos": 373973.09
+        "recupPos": 373973.09,
+        "diasUteis": 20
       },
       {
         "mes": "Mai/26",
@@ -50,7 +54,8 @@
         "metaPre": 6710000.0,
         "recupPre": 6710000.0,
         "metaPos": 405435.61,
-        "recupPos": 405435.61
+        "recupPos": 405435.61,
+        "diasUteis": 20
       },
       {
         "mes": "Jun/26",
@@ -59,7 +64,8 @@
         "metaPre": 7483035.05,
         "recupPre": 5984979.2,
         "metaPos": 394612.47,
-        "recupPos": 428617.88
+        "recupPos": 428617.88,
+        "diasUteis": 21
       },
       {
         "mes": "Jul/26*",
