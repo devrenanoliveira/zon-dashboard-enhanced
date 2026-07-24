@@ -457,7 +457,7 @@ function initResultadoGeral() {
     });
     const mediaProj = hist.map(h => {
       if (!h.mes.includes('*')) return 0;
-      const projMedia = d.diasUteisTotais > 0 ? d.projecaoMes / d.diasUteisTotais : 0;
+      const projMedia = d.diasUteisDecorridos > 0 ? d.projecaoMes / d.diasUteisDecorridos : 0;
       const realMedia = d.diasUteisDecorridos > 0 ? d.recuperacaoAtual / d.diasUteisDecorridos : 0;
       return Math.max(0, Math.round(projMedia - realMedia));
     });
