@@ -3,7 +3,8 @@
     "lastUpdated": "24/07/2026, 14:20",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Junho 2026",
-    "mediaReferencia": "Abr–Jun 2026"
+    "mediaReferencia": "Abr–Jun 2026",
+    "mesCurto": "Jul"
   },
   "resultadoGeral": {
     "metaMensal": 6256206.42,
@@ -1079,17 +1080,6 @@
       0.42,
       0.35
     ],
-    "julProj": [
-      76.9,
-      12.96,
-      4.69,
-      2.34,
-      1.66,
-      1.15,
-      0.83,
-      0.4,
-      0.3
-    ],
     "varTrim": [
       32.38,
       -6.96,
@@ -1122,8 +1112,19 @@
       "Jul": 4.88
     },
     "globalMeta": 5.69,
-    "globalJulProj": 6.47,
     "globalVarTrim": -1.79,
-    "globalIcmMeta": 113.71
+    "globalIcmMeta": 113.71,
+    "projAtual": [
+      76.9,
+      12.96,
+      4.69,
+      2.34,
+      1.66,
+      1.15,
+      0.83,
+      0.4,
+      0.3
+    ],
+    "globalProjAtual": 6.47
   }
 }
