@@ -269,6 +269,12 @@ function _rgUpdateKPIs() {
         <div class="kpi-value"><span style="font-size:1.4rem; color:${varM>=0?'var(--delta-pos)':'var(--delta-neg)'}">${varM>=0?'+':''}${varM.toFixed(1)}%</span></div>
         <div class="kpi-sub">${varM>=0?'Crescimento':'Queda'} vs. mês anterior</div>
       </div>` : ''}
+      ${h.diasUteis ? `
+      <div class="kpi-card">
+        <div class="kpi-label">Média por DU · ${mesLabel}</div>
+        <div class="kpi-value">${fmt.brl(Math.round(h.recuperado / h.diasUteis))}</div>
+        <div class="kpi-sub">${h.diasUteis} DUs no mês</div>
+      </div>` : ''}
       <div class="kpi-card gold">
         <div class="kpi-label">Situação</div>
         <div class="kpi-value" style="font-size:1rem; color:#78350F; padding-top:4px">✓ Mês Encerrado</div>
@@ -442,6 +448,108 @@ function initResultadoGeral() {
     { type:'bar',  color: COLORS.blue + '55', label: 'Projeção (mês atual)' },
     { type:'line', color: COLORS.gold,        label: 'Meta', dashed: true }
   ]);
+
+  // ── GRÁFICO: MÉDIA DE RECUPERAÇÃO POR DU ──────────────────────
+  {
+    const mediaReal = hist.map(h => {
+      if (h.mes.includes('*')) return d.diasUteisDecorridos > 0 ? Math.round(d.recuperacaoAtual / d.diasUteisDecorridos) : null;
+      return h.diasUteis > 0 ? Math.round(h.recuperado / h.diasUteis) : null;
+    });
+    const mediaProj = hist.map(h => {
+      if (!h.mes.includes('*')) return 0;
+      const projMedia = d.diasUteisTotais > 0 ? d.projecaoMes / d.diasUteisTotais : 0;
+      const realMedia = d.diasUteisDecorridos > 0 ? d.recuperacaoAtual / d.diasUteisDecorridos : 0;
+      return Math.max(0, Math.round(projMedia - realMedia));
+    });
+
+    // Média do ano: usa somente meses com diasUteis preenchido
+    const valoresDisponiveis = hist.map(h => {
+      if (h.mes.includes('*')) return d.diasUteisDecorridos > 0 ? d.recuperacaoAtual / d.diasUteisDecorridos : null;
+      return h.diasUteis > 0 ? h.recuperado / h.diasUteis : null;
+    }).filter(v => v != null);
+    const mediaAno = valoresDisponiveis.length > 0
+      ? Math.round(valoresDisponiveis.reduce((s, v) => s + v, 0) / valoresDisponiveis.length)
+      : null;
+
+    new Chart(document.getElementById('chartMediaDU'), {
+      type: 'bar',
+      data: {
+        labels: hist.map(h => h.mes.replace('*','') + (h.mes.includes('*') ? '*' : '')),
+        datasets: [
+          {
+            label: 'Média/DU Realizada',
+            data: mediaReal,
+            backgroundColor: COLORS.blue,
+            borderRadius: [0, 0, 4, 4],
+            borderSkipped: 'bottom',
+            barPercentage: 0.6,
+            stack: 'du'
+          },
+          {
+            label: 'Projeção (complemento)',
+            data: mediaProj,
+            backgroundColor: COLORS.blue + '38',
+            borderColor: COLORS.blue + '70',
+            borderWidth: { top: 1.5, right: 0, bottom: 0, left: 0 },
+            borderRadius: [4, 4, 0, 0],
+            borderSkipped: 'bottom',
+            barPercentage: 0.6,
+            stack: 'du'
+          },
+          {
+            type: 'line',
+            label: 'Média do Ano',
+            data: hist.map(() => mediaAno),
+            borderColor: COLORS.green,
+            borderWidth: 2,
+            borderDash: [5, 4],
+            pointRadius: 0,
+            tension: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        ...baseOptions('R$'),
+        plugins: {
+          ...baseOptions().plugins,
+          tooltip: {
+            ...baseOptions().plugins.tooltip,
+            callbacks: {
+              label: ctx => {
+                if (ctx.dataset.label === 'Projeção (complemento)' && ctx.parsed.y === 0) return null;
+                if (ctx.dataset.label === 'Média do Ano') return `Média do ano: ${fmt.brl(ctx.parsed.y)}/DU`;
+                return `${ctx.dataset.label}: ${fmt.brl(ctx.parsed.y)}/DU`;
+              },
+              footer: items => {
+                const comp = items.find(i => i.dataset.label === 'Projeção (complemento)');
+                if (!comp || comp.parsed.y === 0) return;
+                const real = items.find(i => i.dataset.label === 'Média/DU Realizada');
+                const total = (real ? real.parsed.y : 0) + comp.parsed.y;
+                return `Projeção média/DU: ${fmt.brl(total)}/DU`;
+              }
+            }
+          }
+        },
+        scales: {
+          ...baseOptions().scales,
+          y: {
+            ...baseOptions().scales.y,
+            stacked: true,
+            ticks: {
+              callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k',
+              color: '#898781', font: { size: 10 }
+            }
+          }
+        }
+      }
+    });
+    makeLegend('legendMediaDU', [
+      { type:'bar',  color: COLORS.blue,        label: 'Média/DU Realizada' },
+      { type:'bar',  color: COLORS.blue + '55', label: 'Projeção (mês atual)' },
+      { type:'line', color: COLORS.green,       label: 'Média do Ano', dashed: true }
+    ]);
+  }
 
   function fmtEfic(v) { return v != null ? v.toFixed(2).replace('.',',') + '%' : '—'; }
   
