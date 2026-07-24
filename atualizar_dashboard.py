@@ -61,19 +61,32 @@ def processar_performance_vencimentos(dados):
 
     print(f"📊 CSV de vencimentos: {len(df_raw)} linhas, {len(df_raw.columns)} colunas")
 
-    # ── Localiza colunas D0 e D4 pelo cabeçalho numérico (linha 0) ──
-    header_dias = df_raw.iloc[0].fillna('').str.strip().tolist()
+    # ── Localiza dinamicamente a linha que contém "0" e "4" como cabeçalhos ──
+    # (o Sheets pode ter linhas em branco ou título antes dos cabeçalhos reais)
+    header_row_idx = None
+    for i in range(min(10, len(df_raw))):
+        row_vals = df_raw.iloc[i].fillna('').astype(str).str.strip().tolist()
+        if '0' in row_vals and '4' in row_vals:
+            header_row_idx = i
+            break
+
+    if header_row_idx is None:
+        print(f"❌ Linha de cabeçalho com D0/D4 não encontrada nas primeiras 10 linhas.")
+        print(f"   Linha 0: {df_raw.iloc[0].fillna('').tolist()[:20]}")
+        return
+
+    header_dias = df_raw.iloc[header_row_idx].fillna('').astype(str).str.strip().tolist()
     col_d0 = next((i for i, v in enumerate(header_dias) if v == "0"), None)
     col_d4 = next((i for i, v in enumerate(header_dias) if v == "4"), None)
 
     if col_d0 is None or col_d4 is None:
-        print(f"❌ Colunas D0/D4 não encontradas. Primeiros headers: {header_dias[:20]}")
+        print(f"❌ Colunas D0/D4 não encontradas. Headers linha {header_row_idx}: {header_dias[:20]}")
         return
 
-    print(f"📌 D0 na coluna {col_d0}, D4 na coluna {col_d4}")
+    print(f"📌 Cabeçalho na linha {header_row_idx} — D0 na coluna {col_d0}, D4 na coluna {col_d4}")
 
-    # ── Dados reais a partir da linha 2 (pula 2 linhas de cabeçalho) ──
-    df = df_raw.iloc[2:].reset_index(drop=True).copy()
+    # ── Dados reais: tudo após a linha de cabeçalho (date parsing descarta não-datas) ──
+    df = df_raw.iloc[header_row_idx + 1:].reset_index(drop=True).copy()
 
     # ── Parse de datas (coluna 0 = DATA VENCIMENTO, formato dd/mm/aaaa) ──
     df['data_venc'] = pd.to_datetime(df[0], dayfirst=True, errors='coerce')
