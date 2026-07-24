@@ -218,6 +218,7 @@ def atualizar_dashboard():
             h["meta"]       = r2(meta_mensal)
             h["recupPre"]   = r2(pre_juizo_real)
             h["recupPos"]   = r2(pos_juizo_real)
+            h["diasUteis"]  = rg.get("diasUteisTotais", 23)  # total DUs do mês (fixo no JSON)
             break
 
     # Eficiência histórico — mês parcial
