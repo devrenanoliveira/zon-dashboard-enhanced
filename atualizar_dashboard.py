@@ -8,10 +8,14 @@ from datetime import datetime, timezone, timedelta
 BRT = timezone(timedelta(hours=-3))  # Brasília (UTC-3, sem horário de verão)
 
 # ─── CONFIGURAÇÕES ────────────────────────────────────────────────
-REPO_NAME        = "devrenanoliveira/zon-dashboard-enhanced"   # <-- confirmar nome exato do repo
+REPO_NAME         = "devrenanoliveira/zon-dashboard-enhanced"
 FILE_PATH_IN_REPO = "data.json"
 
 EXPORT_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_S_-IE3A40T6BkRrRMm6CxN-T72cNnEboQ1QfSY8ebEXveWL2gJ621sSrTFWeV2j3jghsbmX3klta/pub?gid=1091839868&single=true&output=csv"
+
+PERF_VENC_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS_S_-IE3A40T6BkRrRMm6CxN-T72cNnEboQ1QfSY8ebEXveWL2gJ621sSrTFWeV2j3jghsbmX3klta/pub?gid=1282570949&single=true&output=csv"
+
+DIAS_VENC = [1, 5, 10, 15, 20, 25]
 
 # ─── HELPERS ──────────────────────────────────────────────────────
 def limpar_float(val):
@@ -32,6 +36,150 @@ def limpar_int(val):
 
 def r2(v):
     return round(v, 2) if v is not None else None
+
+def parse_pct(v):
+    """Converte '58,23%' ou '58.23' para float (0–100). Retorna None se inválido."""
+    s = str(v).replace('%', '').replace(',', '.').strip()
+    try:
+        return round(float(s), 2)
+    except (ValueError, TypeError):
+        return None
+
+def media_safe(lst, key):
+    """Média dos valores não-None de uma lista de dicts."""
+    vals = [item[key] for item in lst if item.get(key) is not None]
+    return round(sum(vals) / len(vals), 2) if vals else None
+
+# ─── PERFORMANCE DE VENCIMENTOS ───────────────────────────────────
+def processar_performance_vencimentos(dados):
+    print("\n📥 Lendo Performance de Vencimentos...")
+    try:
+        df_raw = pd.read_csv(PERF_VENC_URL, header=None, dtype=str)
+    except Exception as e:
+        print(f"❌ Erro ao carregar CSV de performance: {e}")
+        return
+
+    print(f"📊 CSV de vencimentos: {len(df_raw)} linhas, {len(df_raw.columns)} colunas")
+
+    # ── Localiza colunas D0 e D4 pelo cabeçalho numérico (linha 0) ──
+    header_dias = df_raw.iloc[0].fillna('').str.strip().tolist()
+    col_d0 = next((i for i, v in enumerate(header_dias) if v == "0"), None)
+    col_d4 = next((i for i, v in enumerate(header_dias) if v == "4"), None)
+
+    if col_d0 is None or col_d4 is None:
+        print(f"❌ Colunas D0/D4 não encontradas. Primeiros headers: {header_dias[:20]}")
+        return
+
+    print(f"📌 D0 na coluna {col_d0}, D4 na coluna {col_d4}")
+
+    # ── Dados reais a partir da linha 2 (pula 2 linhas de cabeçalho) ──
+    df = df_raw.iloc[2:].reset_index(drop=True).copy()
+
+    # ── Parse de datas (coluna 0 = DATA VENCIMENTO, formato dd/mm/aaaa) ──
+    df['data_venc'] = pd.to_datetime(df[0], dayfirst=True, errors='coerce')
+    df = df.dropna(subset=['data_venc'])
+    df['dia']     = df['data_venc'].dt.day
+    df['mes_ano'] = df['data_venc'].dt.to_period('M')
+
+    # ── Filtra apenas os dias de vencimento relevantes ──
+    df = df[df['dia'].isin(DIAS_VENC)].copy()
+
+    # ── Parse dos percentuais D0 e D4 ──
+    df['d0'] = df[col_d0].apply(parse_pct)
+    df['d4'] = df[col_d4].apply(parse_pct)
+
+    # ── Períodos: mês atual e últimos 3 meses (trimestral) ──
+    hoje      = datetime.now(BRT)
+    mes_atual = pd.Period(f"{hoje.year}-{hoje.month:02d}", 'M')
+    meses_trim = [mes_atual - i for i in range(1, 4)]
+
+    df_atual = df[df['mes_ano'] == mes_atual].copy()
+    df_trim  = df[df['mes_ano'].isin(meses_trim)].copy()
+
+    print(f"📅 Mês atual: {mes_atual} — {len(df_atual)} vencimentos encontrados")
+    print(f"📊 Trimestral: {[str(m) for m in meses_trim]} — {len(df_trim)} registros")
+
+    # ── Média trimestral por dia de vencimento ──
+    trim_avg = df_trim.groupby('dia').agg(
+        d0_media=('d0', 'mean'),
+        d4_media=('d4', 'mean')
+    )
+
+    # ── Monta array de vencimentos ──
+    vencimentos = []
+    for dia in DIAS_VENC:
+        try:
+            data_d0 = datetime(hoje.year, hoje.month, dia, tzinfo=BRT)
+            data_d4 = data_d0 + timedelta(days=4)
+        except ValueError:
+            continue  # dia inválido para o mês
+
+        # Status baseado na data de hoje
+        if hoje.date() > data_d4.date():
+            status, parcial, dia_corrido = 'maturado', False, None
+        elif hoje.date() >= data_d0.date():
+            status      = 'maturando'
+            parcial     = True
+            dia_corrido = (hoje.date() - data_d0.date()).days
+        else:
+            status, parcial, dia_corrido = 'pendente', False, None
+
+        # Valores do mês atual
+        row = df_atual[df_atual['dia'] == dia]
+        mes_d0 = float(row['d0'].values[0]) if len(row) > 0 and pd.notna(row['d0'].values[0]) else None
+        mes_d4 = float(row['d4'].values[0]) if len(row) > 0 and pd.notna(row['d4'].values[0]) else None
+
+        # Médias trimestrais
+        med_d0 = round(trim_avg.loc[dia, 'd0_media'], 2) if dia in trim_avg.index else None
+        med_d4 = round(trim_avg.loc[dia, 'd4_media'], 2) if dia in trim_avg.index else None
+
+        var_d0 = r2(mes_d0 - med_d0) if mes_d0 is not None and med_d0 is not None else None
+        var_d4 = r2(mes_d4 - med_d4) if mes_d4 is not None and med_d4 is not None else None
+
+        vencimentos.append({
+            'dia':         dia,
+            'status':      status,
+            'parcial':     parcial,
+            'diaCorrido':  dia_corrido,
+            'mesD0':       mes_d0,
+            'mesD4':       mes_d4,
+            'mediaTrimD0': med_d0,
+            'mediaTrimD4': med_d4,
+            'varD0':       var_d0,
+            'varD4':       var_d4,
+        })
+
+    # ── Cards de resumo: média de dias 01, 05, 10 (já maturados) ──
+    maturados = [v for v in vencimentos if v['dia'] in [1, 5, 10] and v['mesD0'] is not None]
+
+    d0_pct  = media_safe(maturados, 'mesD0')
+    d4_pct  = media_safe(maturados, 'mesD4')
+    d0_trim = media_safe(maturados, 'mediaTrimD0')
+    d4_trim = media_safe(maturados, 'mediaTrimD4')
+    d0_var  = r2(d0_pct - d0_trim) if d0_pct is not None and d0_trim is not None else 0
+    d4_var  = r2(d4_pct - d4_trim) if d4_pct is not None and d4_trim is not None else 0
+
+    # Em maturação: dias 15, 20, 25 ainda não fechados em D4
+    tardios       = [v for v in vencimentos if v['dia'] in [15, 20, 25]]
+    em_mat_total  = len(tardios)
+    em_mat_atual  = sum(1 for v in tardios if v['status'] != 'maturado')
+
+    # ── Grava no dados ──
+    pv = dados['performanceVencimentos']
+    pv['vencimentos'] = vencimentos
+
+    r = pv['resumo']
+    r['d0']['percentual'] = d0_pct
+    r['d0']['vsMedia']    = d0_trim
+    r['d0']['variacao']   = d0_var
+    r['d4']['percentual'] = d4_pct
+    r['d4']['vsMedia']    = d4_trim
+    r['d4']['variacao']   = d4_var
+    r['emMaturacao']['atual'] = em_mat_atual
+    r['emMaturacao']['total'] = em_mat_total
+
+    print(f"✅ Performance processada: {len(vencimentos)} vencimentos | "
+          f"D0={d0_pct}% | D4={d4_pct}% | Em maturação: {em_mat_atual}/{em_mat_total}")
 
 # ─── PRINCIPAL ────────────────────────────────────────────────────
 def atualizar_dashboard():
@@ -95,39 +243,39 @@ def atualizar_dashboard():
 
     # ─── LEITURA DOS VALORES DO CSV ───────────────────────────────
 
-    def g(chave, fallback=0):
+    def gv(chave, fallback=0):
         v = dados_map.get(chave)
         return v if v is not None else fallback
 
-    meta_mensal      = g("meta_mensal")
-    recuperado_atual = g("recuperado_atual")
-    projecao_mes     = g("projecao_mes")
-    efic_anterior    = g("eficiencia_anterior",
-                         dados["resultadoGeral"].get("eficienciaAnterior", 0))
-    meta_efic_global = g("meta_efic_global",
-                         dados["resultadoGeral"].get("metaEficMes", 0))
-    efic_proj_global = g("efic_proj_global")     # eficiência projetada global (% da carteira)
-    var_trim_global  = g("var_trim_global")
+    meta_mensal      = gv("meta_mensal")
+    recuperado_atual = gv("recuperado_atual")
+    projecao_mes     = gv("projecao_mes")
+    efic_anterior    = gv("eficiencia_anterior",
+                          dados["resultadoGeral"].get("eficienciaAnterior", 0))
+    meta_efic_global = gv("meta_efic_global",
+                          dados["resultadoGeral"].get("metaEficMes", 0))
+    efic_proj_global = gv("efic_proj_global")
+    var_trim_global  = gv("var_trim_global")
 
-    carteira_total   = g("carteira_total")
-    pre_juizo_valor  = g("pre_juizo_valor")
-    pre_juizo_real   = g("pre_juizo_real")
-    pos_juizo_valor  = g("pos_juizo_valor")
-    pos_juizo_real   = g("pos_juizo_real")
+    carteira_total   = gv("carteira_total")
+    pre_juizo_valor  = gv("pre_juizo_valor")
+    pre_juizo_real   = gv("pre_juizo_real")
+    pos_juizo_valor  = gv("pos_juizo_valor")
+    pos_juizo_real   = gv("pos_juizo_real")
 
     # Faixas B–J
     faixas_ids      = ["B", "C", "D", "E", "F", "G", "H", "I", "J"]
-    carteira_faixas = [g(f"carteira_{f}") for f in faixas_ids]
-    efic_faixas     = [g(f"efic_{f}")     for f in faixas_ids]
-    meta_faixas     = [g(f"meta_efic_{f}") for f in faixas_ids]
-    proj_faixas     = [g(f"proj_efic_{f}") for f in faixas_ids]
-    var_trim_faixas = [g(f"var_trim_{f}") for f in faixas_ids]
+    carteira_faixas = [gv(f"carteira_{f}") for f in faixas_ids]
+    efic_faixas     = [gv(f"efic_{f}")     for f in faixas_ids]
+    meta_faixas     = [gv(f"meta_efic_{f}") for f in faixas_ids]
+    proj_faixas     = [gv(f"proj_efic_{f}") for f in faixas_ids]
+    var_trim_faixas = [gv(f"var_trim_{f}") for f in faixas_ids]
 
     # Segmentos
     seg_keys = ["curto", "medio", "tardia", "loss"]
-    seg_meta = [g(f"seg_{k}_meta") for k in seg_keys]
-    seg_real = [g(f"seg_{k}_real") for k in seg_keys]
-    seg_proj = [g(f"seg_{k}_proj") for k in seg_keys]
+    seg_meta = [gv(f"seg_{k}_meta") for k in seg_keys]
+    seg_real = [gv(f"seg_{k}_real") for k in seg_keys]
+    seg_proj = [gv(f"seg_{k}_proj") for k in seg_keys]
 
     # Recuperação por DU
     rec_du_vals = []
@@ -147,11 +295,9 @@ def atualizar_dashboard():
     dus_decorridos = len(rec_du_vals)
     diario_atual   = rec_du_vals[-1]["val"] if rec_du_vals else 0
 
-    # ICM e eficiências
     efic_atual        = r2(recuperado_atual / meta_mensal * 100) if meta_mensal else 0
     efic_atual_global = r2(recuperado_atual / carteira_total * 100) if carteira_total else 0
 
-    # efic_proj_global vem do CSV (fórmula do sheets); fallback para cálculo simples
     if not efic_proj_global and carteira_total:
         efic_proj_global = r2(projecao_mes / carteira_total * 100)
     efic_proj_global = efic_proj_global or 0
@@ -159,19 +305,16 @@ def atualizar_dashboard():
     icm_efic_atual = r2(efic_atual_global / meta_efic_global * 100) if meta_efic_global else 0
     icm_efic_proj  = r2(efic_proj_global  / meta_efic_global * 100) if meta_efic_global else 0
 
-    # Carteira pré/pós
     pre_pct  = r2(pre_juizo_valor / carteira_total * 100) if carteira_total else 0
     pos_pct  = r2(pos_juizo_valor / carteira_total * 100) if carteira_total else 0
     pre_taxa = r2(pre_juizo_real  / pre_juizo_valor * 100) if pre_juizo_valor else 0
     pos_taxa = r2(pos_juizo_real  / pos_juizo_valor * 100) if pos_juizo_valor else 0
 
-    # ICM por segmento
     seg_icm = [
         r2(seg_proj[i] / seg_meta[i] * 100) if seg_meta[i] else 0
         for i in range(4)
     ]
 
-    # Taxa de recuperação por segmento (média ponderada pela carteira de cada faixa)
     def taxa_ponderada(indices):
         cart = sum(carteira_faixas[i] for i in indices if carteira_faixas[i])
         if not cart:
@@ -180,13 +323,12 @@ def atualizar_dashboard():
         return r2(rec / cart * 100)
 
     seg_taxa = [
-        taxa_ponderada([0]),       # Curto: B
-        taxa_ponderada([1, 2]),    # Médio: C, D
-        taxa_ponderada([3, 4, 5]), # Tardia: E, F, G
-        taxa_ponderada([6, 7, 8])  # Loss: H, I, J
+        taxa_ponderada([0]),
+        taxa_ponderada([1, 2]),
+        taxa_ponderada([3, 4, 5]),
+        taxa_ponderada([6, 7, 8])
     ]
 
-    # ICM por faixa (Matriz de Eficiência)
     icm_meta_faixas = [
         r2(proj_faixas[i] / meta_faixas[i] * 100) if meta_faixas[i] else 0
         for i in range(9)
@@ -194,6 +336,11 @@ def atualizar_dashboard():
 
     # ─── ATUALIZA O JSON ──────────────────────────────────────────
     dados["meta"]["lastUpdated"] = datetime.now(BRT).strftime("%d/%m/%Y, %H:%M")
+    dados["meta"]["mesCurto"]   = mes_key  # "Jul", "Ago"… usado pelo JS para lógica dinâmica
+
+    # mesAnterior: último mês encerrado (sem "*") no histórico
+    historico_encerrados = [h["mes"] for h in dados["resultadoGeral"]["historico"] if "*" not in h["mes"]]
+    dados["meta"]["mesAnterior"] = historico_encerrados[-1] if historico_encerrados else None
 
     # RESULTADO GERAL
     rg = dados["resultadoGeral"]
@@ -218,7 +365,7 @@ def atualizar_dashboard():
             h["meta"]       = r2(meta_mensal)
             h["recupPre"]   = r2(pre_juizo_real)
             h["recupPos"]   = r2(pos_juizo_real)
-            h["diasUteis"]  = rg.get("diasUteisTotais", 23)  # total DUs do mês (fixo no JSON)
+            h["diasUteis"]  = rg.get("diasUteisTotais", 23)
             break
 
     # Eficiência histórico — mês parcial
@@ -254,7 +401,7 @@ def atualizar_dashboard():
     cf["posJuizo"]["taxaRec"]    = pos_taxa
     cf["posJuizo"]["variacao"]   = 0
 
-    # Evolução — mês parcial (formato: "Jul*", "Ago*", etc.)
+    # Evolução — mês parcial
     ev_key = mes_key + "*"
     for ev in cf["evolucao"]:
         if ev["mes"] == ev_key:
@@ -280,20 +427,21 @@ def atualizar_dashboard():
     # MATRIZ DE EFICIÊNCIA
     me = dados["matrizEficiencia"]
     me["historico"][mes_key] = [r2(v) for v in efic_faixas]
-    me["julProj"]            = [r2(v) for v in proj_faixas]
+    me["projAtual"]          = [r2(v) for v in proj_faixas]   # genérico: era "julProj"
     me["meta"]               = [r2(v) for v in meta_faixas]
     me["varTrim"]            = [r2(v) for v in var_trim_faixas]
     me["icmMeta"]            = icm_meta_faixas
     me["globalHistorico"][mes_key] = efic_atual_global
-    me["globalJulProj"]      = efic_proj_global
+    me["globalProjAtual"]    = efic_proj_global             # genérico: era "globalJulProj"
     me["globalVarTrim"]      = r2(var_trim_global)
     me["globalIcmMeta"]      = icm_efic_proj
 
-    # PERFORMANCE DE VENCIMENTOS — gerenciada manualmente, não tocada pelo script
+    # PERFORMANCE DE VENCIMENTOS — leitura automática do CSV separado
+    processar_performance_vencimentos(dados)
 
     # ─── GRAVA NO GITHUB ──────────────────────────────────────────
     novo_json = json.dumps(dados, ensure_ascii=False, indent=2)
-    print("💾 Atualizando data.json no GitHub...")
+    print("\n💾 Atualizando data.json no GitHub...")
     repo.update_file(
         path=contents.path,
         message=f"Atualização automática — {datetime.now(BRT).strftime('%d/%m/%Y %H:%M')}",
