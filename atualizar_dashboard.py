@@ -84,15 +84,44 @@ def processar_performance_vencimentos(dados):
         return
 
     print(f"📌 Cabeçalho na linha {header_row_idx} — D0 na coluna {col_d0}, D4 na coluna {col_d4}")
+    print(f"   Valores ao redor de D0 (cols {max(0,col_d0-2)}–{col_d0+2}): {header_dias[max(0,col_d0-2):col_d0+3]}")
 
     # ── Dados reais: tudo após a linha de cabeçalho (date parsing descarta não-datas) ──
     df = df_raw.iloc[header_row_idx + 1:].reset_index(drop=True).copy()
 
-    # ── Parse de datas (coluna 0 = DATA VENCIMENTO, formato dd/mm/aaaa) ──
-    df['data_venc'] = pd.to_datetime(df[0], dayfirst=True, errors='coerce')
+    # Diagnóstico: mostra o que está na coluna de data antes de parsear
+    amostra_col0 = df[0].dropna().head(5).tolist()
+    print(f"🔍 Amostra coluna 0 (datas raw): {amostra_col0}")
+
+    # ── Parse de datas — suporta texto (dd/mm/aaaa) e serial Excel ──
+    def parse_date(v):
+        if pd.isna(v) or str(v).strip() == '':
+            return pd.NaT
+        s = str(v).strip()
+        # Tenta parsing de texto primeiro (dd/mm/aaaa ou aaaa-mm-dd)
+        try:
+            return pd.to_datetime(s, dayfirst=True)
+        except Exception:
+            pass
+        # Fallback: número serial do Excel (dias desde 30/12/1899)
+        try:
+            n = float(s)
+            if 30000 < n < 60000:   # range razoável para datas 1982–2064
+                return pd.Timestamp('1899-12-30') + pd.Timedelta(days=int(n))
+        except Exception:
+            pass
+        return pd.NaT
+
+    df['data_venc'] = df[0].apply(parse_date)
     df = df.dropna(subset=['data_venc'])
     df['dia']     = df['data_venc'].dt.day
     df['mes_ano'] = df['data_venc'].dt.to_period('M')
+
+    print(f"🗓️  Total de linhas com datas válidas: {len(df)}")
+    if len(df) > 0:
+        print(f"   Primeiro: {df['data_venc'].iloc[0].date()} | Último: {df['data_venc'].iloc[-1].date()}")
+        amostra_d0 = df[col_d0].dropna().head(3).tolist()
+        print(f"   Amostra col D0 (raw): {amostra_d0}")
 
     # ── Filtra apenas os dias de vencimento relevantes ──
     df = df[df['dia'].isin(DIAS_VENC)].copy()
@@ -110,6 +139,9 @@ def processar_performance_vencimentos(dados):
     df_trim  = df[df['mes_ano'].isin(meses_trim)].copy()
 
     print(f"📅 Mês atual: {mes_atual} — {len(df_atual)} vencimentos encontrados")
+    if len(df_atual) > 0:
+        print(f"   Dias encontrados: {sorted(df_atual['dia'].tolist())}")
+        print(f"   D0 values: {df_atual['d0'].tolist()}")
     print(f"📊 Trimestral: {[str(m) for m in meses_trim]} — {len(df_trim)} registros")
 
     # ── Média trimestral por dia de vencimento ──
