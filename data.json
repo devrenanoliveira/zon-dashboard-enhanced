@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "24/07/2026, 17:02",
+    "lastUpdated": "24/07/2026, 17:58",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -683,92 +683,92 @@
   "performanceVencimentos": {
     "resumo": {
       "d0": {
-        "percentual": 53.57,
-        "vsMedia": 55.83,
-        "variacao": -4.0
+        "percentual": null,
+        "vsMedia": null,
+        "variacao": 0
       },
       "d4": {
-        "percentual": 68.62,
-        "vsMedia": 66.46,
-        "variacao": 3.2
+        "percentual": null,
+        "vsMedia": null,
+        "variacao": 0
       },
       "emMaturacao": {
-        "atual": 1,
-        "total": 7
+        "atual": 2,
+        "total": 3
       }
     },
     "vencimentos": [
       {
         "dia": 1,
-        "mediaTrimD0": 51.44,
-        "mesD0": 57.39,
-        "varD0": 11.6,
-        "mediaTrimD4": 64.28,
-        "mesD4": 68.09,
-        "varD4": 5.9,
-        "status": "maturado"
+        "status": "maturado",
+        "parcial": false,
+        "diaCorrido": null,
+        "mesD0": null,
+        "mesD4": null,
+        "mediaTrimD0": null,
+        "mediaTrimD4": null,
+        "varD0": null,
+        "varD4": null
       },
       {
         "dia": 5,
-        "mediaTrimD0": 55.49,
-        "mesD0": 51.35,
-        "varD0": -7.5,
-        "mediaTrimD4": 71.03,
-        "mesD4": 72.24,
-        "varD4": 1.7,
-        "status": "maturado"
+        "status": "maturado",
+        "parcial": false,
+        "diaCorrido": null,
+        "mesD0": null,
+        "mesD4": null,
+        "mediaTrimD0": null,
+        "mediaTrimD4": null,
+        "varD0": null,
+        "varD4": null
       },
       {
         "dia": 10,
-        "mediaTrimD0": 58.42,
-        "mesD0": 63.04,
-        "varD0": 7.9,
-        "mediaTrimD4": 67.24,
-        "mesD4": 67.98,
-        "varD4": 1.1,
-        "status": "maturado"
-      },
-      {
-        "dia": 11,
-        "mediaTrimD0": 58.78,
-        "mediaTrimD4": 67.23,
-        "mesD0": 58.07,
-        "varD0": -1.2,
-        "mesD4": 68.4,
-        "varD4": 1.7,
-        "status": "maturado"
+        "status": "maturado",
+        "parcial": false,
+        "diaCorrido": null,
+        "mesD0": null,
+        "mesD4": null,
+        "mediaTrimD0": null,
+        "mediaTrimD4": null,
+        "varD0": null,
+        "varD4": null
       },
       {
         "dia": 15,
-        "mediaTrimD0": 55.02,
-        "mesD0": 38.01,
-        "varD0": -30.9,
-        "mediaTrimD4": 62.54,
-        "mesD4": 66.38,
-        "varD4": 6.1,
-        "status": "maturado"
+        "status": "maturado",
+        "parcial": false,
+        "diaCorrido": null,
+        "mesD0": null,
+        "mesD4": null,
+        "mediaTrimD0": null,
+        "mediaTrimD4": null,
+        "varD0": null,
+        "varD4": null
       },
       {
         "dia": 20,
-        "mediaTrimD0": 43.85,
-        "mesD0": 46.59,
-        "varD0": 6.2,
-        "mediaTrimD4": 54.68,
-        "mesD4": 46.59,
-        "varD4": null,
         "status": "maturando",
         "parcial": true,
-        "diaCorrido": 2
+        "diaCorrido": 4,
+        "mesD0": null,
+        "mesD4": null,
+        "mediaTrimD0": null,
+        "mediaTrimD4": null,
+        "varD0": null,
+        "varD4": null
       },
       {
         "dia": 25,
-        "mediaTrimD0": 44.67,
+        "status": "pendente",
+        "parcial": false,
+        "diaCorrido": null,
         "mesD0": null,
-        "varD0": null,
-        "mediaTrimD4": 55.45,
         "mesD4": null,
-        "varD4": null,
-        "status": "pendente"
+        "mediaTrimD0": null,
+        "mediaTrimD4": null,
+        "varD0": null,
+        "varD4": null
       }
     ],
     "curvaRecuperacao": {
