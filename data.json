@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "24/07/2026, 10:24",
+    "lastUpdated": "24/07/2026, 11:56",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Junho 2026",
     "mediaReferencia": "Abr–Jun 2026"
@@ -68,7 +68,8 @@
         "metaPre": 5820124.91,
         "recupPre": 4935239.95,
         "metaPos": 436081.51,
-        "recupPos": 311549.96
+        "recupPos": 311549.96,
+        "diasUteis": 23
       }
     ],
     "eficAtualMes": 4.88,
