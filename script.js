@@ -1139,6 +1139,7 @@ function _rduUpdateMes() {
 }
 
 function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) {
+  const isAtual = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
   document.getElementById('rdu-table-title').textContent = 'Detalhe por DU — ' + mesNome;
   let acum = 0, acumRef = 0, rows = '';
   serie.forEach((item, idx) => {
