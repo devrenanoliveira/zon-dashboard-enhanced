@@ -1321,6 +1321,7 @@ function cfSetMes(mes) {
     btn.classList.toggle('active', btn.dataset.cfm === mes);
   });
   _cfUpdateCarteiraMes();
+  _cfUpdateDonut();
   _cfUpdateTabela();
   _cfRenderResultado();
 }
@@ -1659,39 +1660,91 @@ function _cfUpdateDonut() {
   const chart = _cfDonutChart;
   if (!chart) return;
 
+  // Determine whether we're showing the current month or a historical one
+  const mesRaw = _cfResMes || '';
+  const mesKey = mesRaw.replace(/\/\d{2}\*?$/, '').trim() || DATA.meta.mesCurto || 'Jul';
+  const isAtual = mesKey === (DATA.meta.mesCurto || 'Jul');
+  const evEntry = !isAtual ? (d.evolucao || []).find(e => e.mes === mesKey) : null;
+
   if (_cfVista === 'ambos') {
-    chart.data.labels = ['Pré-Prejuízo', 'Pós-Prejuízo'];
-    chart.data.datasets[0].data = [d.preJuizo.valor, d.posJuizo.valor];
-    chart.data.datasets[0].backgroundColor = [COLORS.blue, COLORS.gold];
-    document.getElementById('donutCenter').innerHTML =
-      `<div class="donut-val">${fmt.brl(d.totalCarteira)}</div><div class="donut-lbl">Total</div>`;
-    document.getElementById('cf-donut-title').textContent = 'Distribuição Pré / Pós Prejuízo';
-    makeLegend('legendDonut', [
-      { type:'dot', color: COLORS.blue, label: `Pré-Prejuízo (${fmt.pct(d.preJuizo.percentual)})` },
-      { type:'dot', color: COLORS.gold, label: `Pós-Prejuízo (${fmt.pct(d.posJuizo.percentual)})` }
-    ]);
+    if (isAtual || !evEntry) {
+      // Current month: show full pre/pos from carteiraFases
+      chart.data.labels = ['Pré-Prejuízo', 'Pós-Prejuízo'];
+      chart.data.datasets[0].data = [d.preJuizo.valor, d.posJuizo.valor];
+      chart.data.datasets[0].backgroundColor = [COLORS.blue, COLORS.gold];
+      document.getElementById('donutCenter').innerHTML =
+        `<div class="donut-val">${fmt.brl(d.totalCarteira)}</div><div class="donut-lbl">Total</div>`;
+      document.getElementById('cf-donut-title').textContent = 'Distribuição Pré / Pós Prejuízo';
+      makeLegend('legendDonut', [
+        { type:'dot', color: COLORS.blue, label: `Pré-Prejuízo (${fmt.pct(d.preJuizo.percentual)})` },
+        { type:'dot', color: COLORS.gold, label: `Pós-Prejuízo (${fmt.pct(d.posJuizo.percentual)})` }
+      ]);
+    } else {
+      // Historical month: use evolucao pre/pos
+      const total  = evEntry.pre + evEntry.pos;
+      const prePct = total > 0 ? evEntry.pre / total * 100 : 0;
+      const posPct = total > 0 ? evEntry.pos / total * 100 : 0;
+      chart.data.labels = ['Pré-Prejuízo', 'Pós-Prejuízo'];
+      chart.data.datasets[0].data = [evEntry.pre, evEntry.pos];
+      chart.data.datasets[0].backgroundColor = [COLORS.blue, COLORS.gold];
+      document.getElementById('donutCenter').innerHTML =
+        `<div class="donut-val">${fmt.brl(total)}</div><div class="donut-lbl">${mesKey}/26</div>`;
+      document.getElementById('cf-donut-title').textContent = `Distribuição Pré / Pós — ${mesKey}/26`;
+      makeLegend('legendDonut', [
+        { type:'dot', color: COLORS.blue, label: `Pré-Prejuízo (${fmt.pct(prePct)})` },
+        { type:'dot', color: COLORS.gold, label: `Pós-Prejuízo (${fmt.pct(posPct)})` }
+      ]);
+    }
   } else if (_cfVista === 'pre') {
-    const fases = d.fases.slice(0, 6);
-    chart.data.labels = fases.map(f => f.faixa);
-    chart.data.datasets[0].data = fases.map(f => f.valor);
-    chart.data.datasets[0].backgroundColor = _CF_PRE_COLORS;
-    document.getElementById('donutCenter').innerHTML =
-      `<div class="donut-val">${fmt.brl(d.preJuizo.valor)}</div><div class="donut-lbl">Pré-Prej.</div>`;
-    document.getElementById('cf-donut-title').textContent = 'Pré-Prejuízo por Faixa (B–G)';
-    makeLegend('legendDonut', fases.map((f, i) => ({
-      type:'dot', color: _CF_PRE_COLORS[i], label: f.faixa
-    })));
+    if (isAtual || !evEntry) {
+      // Current month: per-faixa breakdown available
+      const fases = d.fases.slice(0, 6);
+      chart.data.labels = fases.map(f => f.faixa);
+      chart.data.datasets[0].data = fases.map(f => f.valor);
+      chart.data.datasets[0].backgroundColor = _CF_PRE_COLORS;
+      document.getElementById('donutCenter').innerHTML =
+        `<div class="donut-val">${fmt.brl(d.preJuizo.valor)}</div><div class="donut-lbl">Pré-Prej.</div>`;
+      document.getElementById('cf-donut-title').textContent = 'Pré-Prejuízo por Faixa (B–G)';
+      makeLegend('legendDonut', fases.map((f, i) => ({
+        type:'dot', color: _CF_PRE_COLORS[i], label: f.faixa
+      })));
+    } else {
+      // Historical: only total pre available, no per-faixa breakdown
+      chart.data.labels = ['Pré-Prejuízo'];
+      chart.data.datasets[0].data = [evEntry.pre];
+      chart.data.datasets[0].backgroundColor = [COLORS.blue];
+      document.getElementById('donutCenter').innerHTML =
+        `<div class="donut-val">${fmt.brl(evEntry.pre)}</div><div class="donut-lbl">${mesKey}/26</div>`;
+      document.getElementById('cf-donut-title').textContent = `Pré-Prejuízo — ${mesKey}/26`;
+      makeLegend('legendDonut', [
+        { type:'dot', color: COLORS.blue, label: `Pré-Prejuízo total` }
+      ]);
+    }
   } else {
-    const fases = d.fases.slice(6);
-    chart.data.labels = fases.map(f => f.faixa);
-    chart.data.datasets[0].data = fases.map(f => f.valor);
-    chart.data.datasets[0].backgroundColor = _CF_POS_COLORS;
-    document.getElementById('donutCenter').innerHTML =
-      `<div class="donut-val">${fmt.brl(d.posJuizo.valor)}</div><div class="donut-lbl">Pós-Prej.</div>`;
-    document.getElementById('cf-donut-title').textContent = 'Pós-Prejuízo por Faixa (H–J)';
-    makeLegend('legendDonut', fases.map((f, i) => ({
-      type:'dot', color: _CF_POS_COLORS[i], label: f.faixa
-    })));
+    if (isAtual || !evEntry) {
+      // Current month: per-faixa breakdown available
+      const fases = d.fases.slice(6);
+      chart.data.labels = fases.map(f => f.faixa);
+      chart.data.datasets[0].data = fases.map(f => f.valor);
+      chart.data.datasets[0].backgroundColor = _CF_POS_COLORS;
+      document.getElementById('donutCenter').innerHTML =
+        `<div class="donut-val">${fmt.brl(d.posJuizo.valor)}</div><div class="donut-lbl">Pós-Prej.</div>`;
+      document.getElementById('cf-donut-title').textContent = 'Pós-Prejuízo por Faixa (H–J)';
+      makeLegend('legendDonut', fases.map((f, i) => ({
+        type:'dot', color: _CF_POS_COLORS[i], label: f.faixa
+      })));
+    } else {
+      // Historical: only total pos available, no per-faixa breakdown
+      chart.data.labels = ['Pós-Prejuízo'];
+      chart.data.datasets[0].data = [evEntry.pos];
+      chart.data.datasets[0].backgroundColor = [COLORS.gold];
+      document.getElementById('donutCenter').innerHTML =
+        `<div class="donut-val">${fmt.brl(evEntry.pos)}</div><div class="donut-lbl">${mesKey}/26</div>`;
+      document.getElementById('cf-donut-title').textContent = `Pós-Prejuízo — ${mesKey}/26`;
+      makeLegend('legendDonut', [
+        { type:'dot', color: COLORS.gold, label: `Pós-Prejuízo total` }
+      ]);
+    }
   }
   chart.update();
 }
