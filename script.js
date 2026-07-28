@@ -2803,26 +2803,33 @@ function initAssessorias() {
   // ─── Tabela consolidada ─────────────────────────────────────
   const tot = a.totais || {};
   let rows = a.lista.map(ass => {
-    const icm = ass.icm;
+    const icm     = ass.icm;
+    const icmProj = ass.icmProj;
     return `<tr>
       <td style="font-weight:600">${ass.nome}</td>
       <td class="td-blue">${fmt.brl(ass.carteira)}</td>
       <td>${fmt.brl(ass.meta)}</td>
       <td>${fmt.brl(ass.recuperado)}</td>
+      <td>${fmt.brl(ass.projecao)}</td>
       <td class="${icmClass(icm)}" style="font-weight:700;color:${icmColor(icm)}">${icm != null ? fmt.pct(icm) : '—'}</td>
+      <td class="${icmClass(icmProj)}" style="font-weight:700;color:${icmColor(icmProj)}">${icmProj != null ? fmt.pct(icmProj) : '—'}</td>
       <td>${fmt.pct(ass.eficAtual, 2)}</td>
+      <td>${ass.eficProj != null ? fmt.pct(ass.eficProj, 2) : '—'}</td>
       <td>${fmt.pct(ass.metaEfic, 2)}</td>
     </tr>`;
   }).join('');
 
-  const tIcm = tot.icm;
+  const tIcm     = tot.icm;
+  const tIcmProj = tot.icmProj;
   rows += `<tr class="row-global">
     <td><strong>TOTAL</strong></td>
     <td class="td-blue"><strong>${fmt.brl(tot.carteira)}</strong></td>
     <td><strong>${fmt.brl(tot.meta)}</strong></td>
     <td><strong>${fmt.brl(tot.recuperado)}</strong></td>
+    <td><strong>${fmt.brl(tot.projecao)}</strong></td>
     <td class="${icmClass(tIcm)}" style="font-weight:700;color:${icmColor(tIcm)}"><strong>${tIcm != null ? fmt.pct(tIcm) : '—'}</strong></td>
-    <td colspan="2" style="color:#898781;font-size:.85rem">—</td>
+    <td class="${icmClass(tIcmProj)}" style="font-weight:700;color:${icmColor(tIcmProj)}"><strong>${tIcmProj != null ? fmt.pct(tIcmProj) : '—'}</strong></td>
+    <td colspan="3" style="color:#898781;font-size:.85rem">—</td>
   </tr>`;
 
   document.getElementById('tableAssBody').innerHTML = rows;
@@ -2866,28 +2873,36 @@ function exportarRankingPDF() {
   const pctMetaGeral = (metaGeral && recupGeral) ? fPct(recupGeral / metaGeral * 100) : '—';
 
   const tableRows = ranking.map((ass, i) => {
-    const icm = ass.icm;
+    const icm     = ass.icm;
+    const icmProj = ass.icmProj;
     return `<tr>
       <td class="pos-cell">${medals[i] || (i + 1) + 'º'}</td>
       <td class="name-cell">${ass.nome}</td>
       <td>${fBrl(ass.carteira)}</td>
       <td>${fBrl(ass.meta)}</td>
       <td>${fBrl(ass.recuperado)}</td>
-      <td style="font-weight:700;color:${fIcmColor(icm)}">${fPct(ass.eficAtual, 2)}</td>
-      <td>${fPct(ass.metaEfic, 2)}</td>
+      <td>${fBrl(ass.projecao)}</td>
       <td><span class="badge ${fBadgeCls(icm)}">${icm != null ? fPct(icm) : '—'}</span></td>
+      <td><span class="badge ${fBadgeCls(icmProj)}">${icmProj != null ? fPct(icmProj) : '—'}</span></td>
+      <td style="font-weight:700;color:${fIcmColor(icm)}">${fPct(ass.eficAtual, 2)}</td>
+      <td style="font-weight:700;color:${fIcmColor(icmProj)}">${ass.eficProj != null ? fPct(ass.eficProj, 2) : '—'}</td>
+      <td>${fPct(ass.metaEfic, 2)}</td>
     </tr>`;
   }).join('');
 
+  const totIcmProj = tot.icmProj;
   const totalRow = `<tr class="total-row">
     <td>—</td>
     <td>TOTAL</td>
     <td>${fBrl(tot.carteira)}</td>
     <td>${fBrl(metaGeral)}</td>
     <td>${fBrl(recupGeral)}</td>
-    <td>—</td>
-    <td>—</td>
+    <td>${fBrl(tot.projecao)}</td>
     <td><span class="badge ${fBadgeCls(icmGeral)}">${icmGeral != null ? fPct(icmGeral) : '—'}</span></td>
+    <td><span class="badge ${fBadgeCls(totIcmProj)}">${totIcmProj != null ? fPct(totIcmProj) : '—'}</span></td>
+    <td>—</td>
+    <td>${tot.eficProj != null ? fPct(tot.eficProj, 2) : '—'}</td>
+    <td>—</td>
   </tr>`;
 
   const insights = [
@@ -2900,6 +2915,9 @@ function exportarRankingPDF() {
       : '',
     metaGeral
       ? `📊 <strong>Resultado consolidado:</strong> ${fBrl(recupGeral)} recuperados de ${fBrl(metaGeral)} de meta em ${mesLabel} — ${pctMetaGeral} da meta mensal.`
+      : '',
+    tot.projecao
+      ? `📈 <strong>Projeção de fechamento:</strong> ${fBrl(tot.projecao)} consolidado${tot.icmProj != null ? ` — ICM projetado de ${fPct(tot.icmProj)} s/ meta.` : '.'}`
       : '',
   ].filter(Boolean).map(t => `<p>${t}</p>`).join('');
 
@@ -3019,12 +3037,15 @@ function exportarRankingPDF() {
       <tr>
         <th>#</th>
         <th style="text-align:left">Assessoria</th>
-        <th>Carteira Total</th>
-        <th>Meta Mensal</th>
+        <th>Carteira</th>
+        <th>Meta (R$)</th>
         <th>Recuperado</th>
+        <th>Projeção (R$)</th>
+        <th>ICM Atual</th>
+        <th>ICM Proj.</th>
         <th>Efic. Atual</th>
+        <th>Efic. Proj.</th>
         <th>Meta Efic.</th>
-        <th>ICM s/ Meta</th>
       </tr>
     </thead>
     <tbody>
@@ -3033,7 +3054,7 @@ function exportarRankingPDF() {
     </tbody>
   </table>
 
-  <p class="sec">Insights Automáticos</p>
+  <p class="sec">Insights</p>
   <div class="insights">
     <div class="ins-title">⚡ Destaques do período</div>
     ${insights}
