@@ -158,6 +158,7 @@ function initTab(id) {
       case 'tab-segmento-faixa':    initSegmentoFaixa();    break;
       case 'tab-performance-venc':  initPerfVenc();         break;
       case 'tab-matriz-efic':       initMatrizEficiencia(); break;
+      case 'tab-assessorias':       initAssessorias();      break;
     }
   } catch (err) {
     _tabError(id, err);
@@ -2637,4 +2638,192 @@ function initMatrizEficiencia() {
       ${piorandoJul.length > 0 ? `Tendência de queda: ${piorandoJul.map(l => `<strong>${l}</strong>`).join(', ')}.` : ''}
     </p>` : ''}
   `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 8 — ASSESSORIAS
+// ══════════════════════════════════════════════════════════════
+function initAssessorias() {
+  const a = DATA.assessorias;
+
+  // Subtitle dinâmico com o mês atual
+  const mesLabel = DATA.meta.mesReferencia || (DATA.meta.mesCurto ? DATA.meta.mesCurto + '/26' : 'mês atual');
+  const subEl = document.getElementById('ass-subtitle');
+  if (subEl) subEl.textContent =
+    `Comparativo de carteira, meta e recuperação por assessoria de cobrança — ${mesLabel}`;
+
+  // Verifica se dados já foram populados no JSON
+  if (!a || !a.lista || a.lista.length === 0 || a.lista.every(x => x.carteira == null)) {
+    document.getElementById('tab-assessorias').innerHTML +=
+      '<div style="padding:40px;text-align:center;color:#898781;font-size:.95rem">' +
+      '⚠️ Dados de assessorias ainda não disponíveis.<br>' +
+      '<span style="font-size:.85rem">Adicione as variáveis no Google Sheets (linhas 126–140) e execute o script de atualização.</span>' +
+      '</div>';
+    return;
+  }
+
+  const COLORS_ASS = [COLORS.blue, COLORS.navy, COLORS.aqua];
+  const icmColor   = v => v == null ? '' : v >= 100 ? 'var(--delta-pos)' : v >= 85 ? 'var(--brand-gold)' : 'var(--delta-neg)';
+  const icmClass   = v => v == null ? '' : v >= 100 ? 'td-pos' : v >= 85 ? 'td-gold' : 'td-neg';
+
+  // ─── KPI Cards (um por assessoria) ─────────────────────────
+  const kpiEl = document.getElementById('ass-kpis');
+  kpiEl.innerHTML = a.lista.map((ass, idx) => {
+    const pctMeta  = (ass.meta > 0 && ass.recuperado != null) ? ass.recuperado / ass.meta * 100 : 0;
+    const barColor = pctMeta >= 100 ? '#10B981' : pctMeta >= 85 ? '#F59E0B' : '#EF4444';
+    const icm      = ass.icm;
+    const icmCls   = icm == null ? '' : icm >= 100 ? 'green' : icm >= 85 ? 'gold' : 'red';
+    return `
+    <div class="kpi-card ${icmCls}" style="border-top:3px solid ${COLORS_ASS[idx]}">
+      <div class="kpi-label" style="font-weight:700;color:${COLORS_ASS[idx]};font-size:.78rem;text-transform:uppercase;letter-spacing:.06em">${ass.nome}</div>
+      <div style="margin-top:10px">
+        <div class="kpi-label">Carteira Total</div>
+        <div class="kpi-value" style="font-size:1.05rem">${fmt.brl(ass.carteira)}</div>
+      </div>
+      <div style="margin-top:10px">
+        <div class="kpi-label">Recuperado vs Meta</div>
+        <div class="kpi-value" style="font-size:1.2rem">${fmt.brl(ass.recuperado)}</div>
+        <div class="kpi-sub">${fmt.pct(pctMeta)} da meta (${fmt.brl(ass.meta)})</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pctMeta,100)}%;background:${barColor}"></div></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:18px;flex-wrap:wrap">
+        <div>
+          <div class="kpi-label">Efic. Atual</div>
+          <div style="font-size:.95rem;font-weight:700;color:${icmColor(icm)}">${fmt.pct(ass.eficAtual, 2)}</div>
+        </div>
+        <div>
+          <div class="kpi-label">Meta Efic.</div>
+          <div style="font-size:.95rem;font-weight:600">${fmt.pct(ass.metaEfic, 2)}</div>
+        </div>
+        <div>
+          <div class="kpi-label">ICM</div>
+          <div style="font-size:.95rem;font-weight:700;color:${icmColor(icm)}">${icm != null ? fmt.pct(icm) : '—'}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const labels = a.lista.map(x => x.nome);
+
+  // ─── Gráfico: Recuperado vs Meta (R$) ──────────────────────
+  const ctxRecup = document.getElementById('chartAssRecup').getContext('2d');
+  new Chart(ctxRecup, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Meta',
+          data: a.lista.map(x => x.meta),
+          backgroundColor: 'rgba(42,120,214,0.25)',
+          borderColor: COLORS.blue,
+          borderWidth: 2,
+          borderRadius: 4,
+        },
+        {
+          label: 'Recuperado',
+          data: a.lista.map(x => x.recuperado),
+          backgroundColor: a.lista.map((x, i) => COLORS_ASS[i]),
+          borderWidth: 0,
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      ...baseOptions('R$'),
+      plugins: {
+        legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 }, color: '#898781' } },
+        tooltip: {
+          ...baseOptions().plugins.tooltip,
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmt.brl(ctx.parsed.y)}` }
+        }
+      },
+      scales: {
+        x: baseOptions().scales.x,
+        y: { ...baseOptions().scales.y, ticks: { callback: v => fmt.brl(v), color: '#898781', font: { size: 10 } } }
+      }
+    }
+  });
+  makeLegend('legendAssRecup', [
+    { type: 'dot', color: COLORS.blue,  label: 'Meta (R$)' },
+    { type: 'dot', color: COLORS_ASS[0], label: a.lista[0].nome },
+    { type: 'dot', color: COLORS_ASS[1], label: a.lista[1] ? a.lista[1].nome : '' },
+    { type: 'dot', color: COLORS_ASS[2], label: a.lista[2] ? a.lista[2].nome : '' },
+  ].filter(x => x.label));
+
+  // ─── Gráfico: Eficiência Atual vs Meta Efic. (%) ───────────
+  const ctxEfic = document.getElementById('chartAssEfic').getContext('2d');
+  new Chart(ctxEfic, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Meta Efic.',
+          data: a.lista.map(x => x.metaEfic),
+          backgroundColor: 'rgba(42,120,214,0.25)',
+          borderColor: COLORS.blue,
+          borderWidth: 2,
+          borderRadius: 4,
+        },
+        {
+          label: 'Efic. Atual',
+          data: a.lista.map(x => x.eficAtual),
+          backgroundColor: a.lista.map(x => {
+            const icm = x.icm;
+            return icm == null ? COLORS.gold : icm >= 100 ? COLORS.green : icm >= 85 ? COLORS.gold : COLORS.red;
+          }),
+          borderWidth: 0,
+          borderRadius: 4,
+        }
+      ]
+    },
+    options: {
+      ...baseOptions('%'),
+      plugins: {
+        legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 }, color: '#898781' } },
+        tooltip: {
+          ...baseOptions().plugins.tooltip,
+          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmt.pct(ctx.parsed.y, 2)}` }
+        }
+      },
+      scales: {
+        x: baseOptions().scales.x,
+        y: { ...baseOptions().scales.y, ticks: { callback: v => v.toFixed(2) + '%', color: '#898781', font: { size: 10 } } }
+      }
+    }
+  });
+  makeLegend('legendAssEfic', [
+    { type: 'dot', color: COLORS.blue,  label: 'Meta Efic. (%)' },
+    { type: 'dot', color: COLORS.green, label: 'Efic. Atual ≥ 100% ICM' },
+    { type: 'dot', color: COLORS.gold,  label: 'Efic. Atual 85–99% ICM' },
+    { type: 'dot', color: COLORS.red,   label: 'Efic. Atual < 85% ICM' },
+  ]);
+
+  // ─── Tabela consolidada ─────────────────────────────────────
+  const tot = a.totais || {};
+  let rows = a.lista.map(ass => {
+    const icm = ass.icm;
+    return `<tr>
+      <td style="font-weight:600">${ass.nome}</td>
+      <td class="td-blue">${fmt.brl(ass.carteira)}</td>
+      <td>${fmt.brl(ass.meta)}</td>
+      <td>${fmt.brl(ass.recuperado)}</td>
+      <td class="${icmClass(icm)}" style="font-weight:700;color:${icmColor(icm)}">${icm != null ? fmt.pct(icm) : '—'}</td>
+      <td>${fmt.pct(ass.eficAtual, 2)}</td>
+      <td>${fmt.pct(ass.metaEfic, 2)}</td>
+    </tr>`;
+  }).join('');
+
+  const tIcm = tot.icm;
+  rows += `<tr class="row-global">
+    <td><strong>TOTAL</strong></td>
+    <td class="td-blue"><strong>${fmt.brl(tot.carteira)}</strong></td>
+    <td><strong>${fmt.brl(tot.meta)}</strong></td>
+    <td><strong>${fmt.brl(tot.recuperado)}</strong></td>
+    <td class="${icmClass(tIcm)}" style="font-weight:700;color:${icmColor(tIcm)}"><strong>${tIcm != null ? fmt.pct(tIcm) : '—'}</strong></td>
+    <td colspan="2" style="color:#898781;font-size:.85rem">—</td>
+  </tr>`;
+
+  document.getElementById('tableAssBody').innerHTML = rows;
 }
