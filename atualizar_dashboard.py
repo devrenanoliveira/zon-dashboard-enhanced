@@ -525,33 +525,41 @@ def atualizar_dashboard():
         recup = dados_map.get(f"{aid}_recuperado_atual")
         mefic = dados_map.get(f"{aid}_meta_efic")
         efic  = dados_map.get(f"{aid}_efic_atual")
+        proj  = dados_map.get(f"{aid}_projecao_mes")
 
         cart  = r2(cart)  if cart  is not None else None
         meta  = r2(meta)  if meta  is not None else None
         recup = r2(recup) if recup is not None else None
         mefic = r2(mefic) if mefic is not None else None
         efic  = r2(efic)  if efic  is not None else None
+        proj  = r2(proj)  if proj  is not None else None
 
-        icm      = r2(recup / meta * 100)  if (recup is not None and meta and meta > 0)  else None
-        efic_proj = r2(recup / cart * 100) if (recup is not None and cart and cart > 0) else None
+        icm       = r2(recup / meta * 100) if (recup is not None and meta and meta > 0)  else None
+        efic_proj = r2(proj  / cart * 100) if (proj  is not None and cart and cart > 0)  else None
+        icm_proj  = r2(proj  / meta * 100) if (proj  is not None and meta and meta > 0)  else None
 
         ass_lista.append({
-            "id":        aid,
-            "nome":      a["nome"],
-            "carteira":  cart,
-            "meta":      meta,
+            "id":         aid,
+            "nome":       a["nome"],
+            "carteira":   cart,
+            "meta":       meta,
             "recuperado": recup,
-            "metaEfic":  mefic,
-            "eficAtual": efic,
-            "icm":       icm,
-            "eficProj":  efic_proj,
+            "metaEfic":   mefic,
+            "eficAtual":  efic,
+            "icm":        icm,
+            "projecao":   proj,
+            "eficProj":   efic_proj,
+            "icmProj":    icm_proj,
         })
 
     # Totais consolidados
     tot_cart  = sum(a["carteira"]    or 0 for a in ass_lista) or None
     tot_meta  = sum(a["meta"]        or 0 for a in ass_lista) or None
     tot_recup = sum(a["recuperado"]  or 0 for a in ass_lista) or None
-    tot_icm   = r2(tot_recup / tot_meta * 100) if (tot_recup and tot_meta and tot_meta > 0) else None
+    tot_proj  = sum(a["projecao"]    or 0 for a in ass_lista) if any(a["projecao"] for a in ass_lista) else None
+    tot_icm      = r2(tot_recup / tot_meta * 100) if (tot_recup and tot_meta and tot_meta > 0) else None
+    tot_icm_proj = r2(tot_proj  / tot_meta * 100) if (tot_proj  and tot_meta and tot_meta > 0) else None
+    tot_efic_proj = r2(tot_proj / tot_cart * 100) if (tot_proj  and tot_cart and tot_cart > 0) else None
 
     if "assessorias" not in dados:
         dados["assessorias"] = {}
@@ -560,7 +568,10 @@ def atualizar_dashboard():
         "carteira":   r2(tot_cart),
         "meta":       r2(tot_meta),
         "recuperado": r2(tot_recup),
+        "projecao":   r2(tot_proj),
         "icm":        tot_icm,
+        "icmProj":    tot_icm_proj,
+        "eficProj":   tot_efic_proj,
     }
     print(f"✅ Assessorias: {[a['id'] for a in ass_lista]} | Total recup: {tot_recup} | ICM: {tot_icm}%")
 
