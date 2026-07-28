@@ -1762,6 +1762,7 @@ function _cfUpdateTabela() {
   const mesKey = mesRaw.replace(/\/\d{2}\*?$/, '').trim() || DATA.meta.mesCurto || 'Jul';
   const isAtual   = mesKey === (DATA.meta.mesCurto || 'Jul');
   const histData  = !isAtual ? (em.historico[mesKey] || null) : null;
+  const histFases = !isAtual ? ((DATA.carteiraFases.evolucaoFases || {})[mesKey] || null) : null;
   const hasEfic   = isAtual || histData !== null;
 
   const thEfic = document.getElementById('th-efic-col');
@@ -1774,7 +1775,10 @@ function _cfUpdateTabela() {
   const mesLabel = mesRaw.replace('*', '') || mesKey;
   const noteEl = document.getElementById('tableFasesNote');
   if (noteEl) {
-    if (!isAtual && hasEfic) {
+    if (!isAtual && histFases && hasEfic) {
+      noteEl.style.display = 'block';
+      noteEl.textContent = `Eficiência e ICM referentes a ${mesLabel}.`;
+    } else if (!isAtual && !histFases && hasEfic) {
       noteEl.style.display = 'block';
       noteEl.textContent = `Carteira (R$) e recuperado por faixa disponíveis apenas para o mês atual. Eficiência e ICM referentes a ${mesLabel}.`;
     } else if (!isAtual && !hasEfic) {
@@ -1804,11 +1808,23 @@ function _cfUpdateTabela() {
     }
 
     const icmCls = icmVal != null ? (icmVal >= 100 ? 'td-pos' : icmVal >= 85 ? 'td-gold' : 'td-neg') : '';
+
+    // Dados de carteira: atual → fases correntes; histórico → evolucaoFases se disponível
+    const hf = histFases ? histFases[i] : null;
+    const taxaRecVal = isAtual ? f.taxaRec : (hf ? hf.taxaRec : null);
+    const taxaIcm = (meta != null && meta > 0 && taxaRecVal != null) ? taxaRecVal / meta * 100 : null;
+    const taxaCls = taxaIcm != null ? (taxaIcm >= 100 ? 'td-pos' : taxaIcm >= 85 ? 'td-gold' : 'td-neg') : '';
+
     const colsCarteira = isAtual
       ? `<td class="td-blue">${fmt.brl(f.valor)}</td>
          <td>${fmt.pct(f.pct)}</td>
          <td>${fmt.brl(f.valor * f.taxaRec / 100)}</td>
-         <td class="${f.taxaRec >= 15 ? 'td-pos' : f.taxaRec >= 5 ? '' : 'td-muted'}">${fmt.pct(f.taxaRec)}</td>`
+         <td class="${taxaCls}">${fmt.pct(f.taxaRec)}</td>`
+      : hf
+      ? `<td class="td-blue">${fmt.brl(hf.valor)}</td>
+         <td>${fmt.pct(hf.pct)}</td>
+         <td>${fmt.brl(hf.valor * hf.taxaRec / 100)}</td>
+         <td class="${taxaCls}">${fmt.pct(hf.taxaRec)}</td>`
       : `<td class="td-muted" style="color:var(--ink-muted)">—</td>
          <td class="td-muted" style="color:var(--ink-muted)">—</td>
          <td class="td-muted" style="color:var(--ink-muted)">—</td>
