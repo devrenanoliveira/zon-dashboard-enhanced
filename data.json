@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "28/07/2026, 09:25",
+    "lastUpdated": "28/07/2026, 09:40",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -717,10 +717,10 @@
   },
   "segmentoFaixa": {
     "segmentos": [
-      "Curto atraso (B)",
-      "Médio atraso (C, D)",
-      "Tardia crítica (E-G)",
-      "Loss (H-J)"
+      "Curto atraso (5–30d)",
+      "Médio atraso (31–90d)",
+      "Tardia crítica (91–180d)",
+      "Loss (181d+)"
     ],
     "meta": [
       4444894.09,
