@@ -470,6 +470,20 @@ def atualizar_dashboard():
             fase["pct"]     = r2(carteira_faixas[i] / carteira_total * 100) if carteira_total else 0
             fase["taxaRec"] = efic_faixas[i]
 
+    # Snapshot histórico de fases por mês (evolucaoFases)
+    # Cada execução grava os valores do mês corrente; meses anteriores ficam preservados.
+    if "evolucaoFases" not in cf:
+        cf["evolucaoFases"] = {}
+    cf["evolucaoFases"][mes_key] = [
+        {
+            "valor":   r2(carteira_faixas[i]),
+            "pct":     r2(carteira_faixas[i] / carteira_total * 100) if carteira_total else 0,
+            "taxaRec": efic_faixas[i]
+        }
+        for i in range(9)
+    ]
+    print(f"📸 Snapshot de fases gravado para {mes_key} em evolucaoFases")
+
     # SEGMENTO DE FAIXA
     sf = dados["segmentoFaixa"]
     sf["meta"]       = [r2(v) for v in seg_meta]
