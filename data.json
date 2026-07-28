@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "28/07/2026, 10:50",
+    "lastUpdated": "28/07/2026, 12:15",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -1199,5 +1199,48 @@
       0.32
     ],
     "globalProjAtual": 6.53
+  },
+  "assessorias": {
+    "lista": [
+      {
+        "id": "afr",
+        "nome": "Fácil Resultado",
+        "carteira": 8000000.0,
+        "meta": 480000.0,
+        "recuperado": 45000.0,
+        "metaEfic": 6.0,
+        "eficAtual": 0.56,
+        "icm": 9.38,
+        "eficProj": 0.56
+      },
+      {
+        "id": "apm",
+        "nome": "PG+",
+        "carteira": 3000000.0,
+        "meta": 180000.0,
+        "recuperado": 30000.0,
+        "metaEfic": 6.0,
+        "eficAtual": 1.0,
+        "icm": 16.67,
+        "eficProj": 1.0
+      },
+      {
+        "id": "ad",
+        "nome": "Decisão",
+        "carteira": 5000000.0,
+        "meta": 300000.0,
+        "recuperado": 120000.0,
+        "metaEfic": 6.0,
+        "eficAtual": 2.4,
+        "icm": 40.0,
+        "eficProj": 2.4
+      }
+    ],
+    "totais": {
+      "carteira": 16000000.0,
+      "meta": 960000.0,
+      "recuperado": 195000.0,
+      "icm": 20.31
+    }
   }
 }
