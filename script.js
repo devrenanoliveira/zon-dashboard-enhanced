@@ -574,6 +574,11 @@ function initResultadoGeral() {
   }).join('');
 
   const eficH = d.eficienciaHistorico;
+  // Calcula min do eixo Y com folga abaixo do menor valor para evitar escala distorcida
+  const _eficVals = eficH.flatMap(e => [e.eficAtual, e.metaEfic, e.eficProj].filter(v => v != null));
+  const _eficMin  = Math.min(..._eficVals);
+  const _eficMax  = Math.max(..._eficVals);
+  const _eficYMin = Math.max(0, +( (_eficMin - (_eficMax - _eficMin) * 0.8).toFixed(1) ));
   new Chart(document.getElementById('chartEficiencia'), {
     type: 'line',
     data: {
@@ -638,6 +643,7 @@ function initResultadoGeral() {
         ...baseOptions().scales,
         y: {
           ...baseOptions().scales.y,
+          min: _eficYMin,
           ticks: { callback: v => v.toFixed(1) + '%', color: '#898781', font: { size: 10 } }
         }
       }
