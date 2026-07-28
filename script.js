@@ -2936,7 +2936,7 @@ function exportarRankingPDF() {
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: #fff; color: #1e293b;
-      padding: 36px 44px; max-width: 900px; margin: 0 auto; font-size: 14px;
+      padding: 28px 36px; max-width: 1200px; margin: 0 auto; font-size: 13px;
     }
 
     /* ── HEADER ── */
@@ -2963,16 +2963,16 @@ function exportarRankingPDF() {
     /* ── TABLE ── */
     table { width: 100%; border-collapse: collapse; font-size: .84rem; margin-bottom: 4px; }
     thead tr { background: #0F2461; }
-    thead th { padding: 9px 11px; color: #fff; text-align: center; font-weight: 600;
-               font-size: .75rem; letter-spacing: .02em; }
+    thead th { padding: 7px 9px; color: #fff; text-align: center; font-weight: 600;
+               font-size: .72rem; letter-spacing: .02em; }
     thead th:nth-child(2) { text-align: left; }
     tbody tr { border-bottom: 1px solid #f1f5f9; transition: background .1s; }
     tbody tr:hover { background: #f8fafc; }
-    tbody td { padding: 9px 11px; text-align: center; }
-    .pos-cell  { font-size: 1.05rem; text-align: center; width: 36px; }
-    .name-cell { text-align: left; font-weight: 600; }
+    tbody td { padding: 7px 9px; text-align: center; white-space: nowrap; }
+    .pos-cell  { font-size: 1rem; text-align: center; width: 32px; }
+    .name-cell { text-align: left; font-weight: 600; white-space: nowrap; }
     .total-row { background: #f0f4ff; border-top: 2px solid #0F2461; font-weight: 700; }
-    .total-row td { padding: 10px 11px; }
+    .total-row td { padding: 8px 9px; }
 
     /* ── BADGES ── */
     .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: .78rem; font-weight: 700; }
@@ -2994,8 +2994,8 @@ function exportarRankingPDF() {
                   font-size: .72rem; color: #94a3b8; display: flex; justify-content: space-between; }
 
     @media print {
-      body { padding: 16px; }
-      @page { margin: 1.2cm; size: A4 portrait; }
+      body { padding: 12px 16px; }
+      @page { margin: 1cm; size: A4 landscape; }
     }
   </style>
 </head>
