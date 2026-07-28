@@ -67,6 +67,7 @@
   <button class="tab-btn" data-tab="carteira-fases">Carteira &amp; Fases</button>
   <button class="tab-btn" data-tab="segmento-faixa">Segmento de Faixa</button>
   <button class="tab-btn" data-tab="performance-venc">Performance de Vencimentos</button>
+  <button class="tab-btn" data-tab="assessorias">Assessorias</button>
 </nav>
 
 </div>
@@ -500,6 +501,51 @@
   <div class="destaque-block" id="me-destaque"></div>
 
   <p class="footnote">ICM = (Recuperado / Meta) × 100. Meta padrão = 100%. Jul/26 Proj. calculado com base no ritmo atual de DUs decorridos. * Jul/26 Real = eficiência parcial acumulada (12 DUs). Dados históricos atualizados manualmente.</p>
+</section>
+
+<section class="tab-panel" id="tab-assessorias">
+  <p class="sec-label">Visão Comparativa</p>
+  <h1 class="sec-title">Performance por Assessoria</h1>
+  <p class="sec-subtitle" id="ass-subtitle">Comparativo de carteira, meta e recuperação por assessoria de cobrança — mês atual</p>
+
+  <div class="kpi-grid" id="ass-kpis"></div>
+
+  <div class="two-col" style="margin-top:24px">
+    <div class="chart-card">
+      <div class="chart-title">Recuperado vs Meta (R$)</div>
+      <div class="chart-wrap h260"><canvas id="chartAssRecup"></canvas></div>
+      <div class="chart-legend" id="legendAssRecup"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Eficiência Atual vs Meta Efic. (%)</div>
+      <div class="chart-wrap h260"><canvas id="chartAssEfic"></canvas></div>
+      <div class="chart-legend" id="legendAssEfic"></div>
+    </div>
+  </div>
+
+  <div class="table-card" style="margin-top:24px">
+    <div class="table-card-header">
+      <span class="chart-title" style="margin:0">Consolidado por Assessoria</span>
+    </div>
+    <div class="table-scroll">
+      <table id="tableAssessorias">
+        <thead>
+          <tr>
+            <th style="text-align:left">Assessoria</th>
+            <th>Carteira Total</th>
+            <th>Meta Mensal</th>
+            <th>Recuperado</th>
+            <th>ICM s/ Meta</th>
+            <th>Efic. Atual (%)</th>
+            <th>Meta Efic. (%)</th>
+          </tr>
+        </thead>
+        <tbody id="tableAssBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="footnote">ICM = (Recuperado ÷ Meta) × 100. Efic. Atual = % recuperado sobre a carteira total da assessoria. Dados atualizados automaticamente a cada execução do script.</p>
 </section>
 
 <div id="chartTooltip"></div>
