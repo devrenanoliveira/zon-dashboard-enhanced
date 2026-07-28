@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "28/07/2026, 08:33",
+    "lastUpdated": "28/07/2026, 09:25",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -664,7 +664,56 @@
         "pct": 9.75,
         "taxaRec": 0.26
       }
-    ]
+    ],
+    "evolucaoFases": {
+      "Jul": [
+        {
+          "valor": 8031148.45,
+          "pct": 7.39,
+          "taxaRec": 57.08
+        },
+        {
+          "valor": 4793551.51,
+          "pct": 4.41,
+          "taxaRec": 11.58
+        },
+        {
+          "valor": 4315434.91,
+          "pct": 3.97,
+          "taxaRec": 4.25
+        },
+        {
+          "valor": 5231599.6,
+          "pct": 4.81,
+          "taxaRec": 1.98
+        },
+        {
+          "valor": 5101294.04,
+          "pct": 4.69,
+          "taxaRec": 1.51
+        },
+        {
+          "valor": 5421353.08,
+          "pct": 4.99,
+          "taxaRec": 0.98
+        },
+        {
+          "valor": 28405089.51,
+          "pct": 26.14,
+          "taxaRec": 0.74
+        },
+        {
+          "valor": 36772679.9,
+          "pct": 33.84,
+          "taxaRec": 0.33
+        },
+        {
+          "valor": 10596374.68,
+          "pct": 9.75,
+          "taxaRec": 0.26
+        }
+      ]
+    }
   },
   "segmentoFaixa": {
     "segmentos": [
