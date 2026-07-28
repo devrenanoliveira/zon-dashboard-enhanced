@@ -2827,3 +2827,232 @@ function initAssessorias() {
 
   document.getElementById('tableAssBody').innerHTML = rows;
 }
+
+// ══════════════════════════════════════════════════════════════
+// EXPORTAR RANKING PDF
+// ══════════════════════════════════════════════════════════════
+function exportarRankingPDF() {
+  const a = DATA.assessorias;
+  if (!a || !a.lista || a.lista.length === 0 || a.lista.every(x => x.carteira == null)) {
+    alert('Dados de assessorias ainda não disponíveis. Preencha as variáveis no Google Sheets e execute o script de atualização.');
+    return;
+  }
+
+  const mesLabel   = DATA.meta.mesReferencia || (DATA.meta.mesCurto ? DATA.meta.mesCurto + '/26' : 'mês atual');
+  const agora      = new Date();
+  const dataStr    = agora.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const horaStr    = agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  const dataGeracao = dataStr + ' às ' + horaStr;
+
+  const rg      = DATA.resultadoGeral || {};
+  const tot     = a.totais || {};
+  const ranking = [...a.lista].sort((x, y) => (y.eficAtual || 0) - (x.eficAtual || 0));
+  const medals  = ['🥇', '🥈', '🥉'];
+
+  const acimaMeta  = ranking.filter(x => x.icm != null && x.icm >= 100);
+  const abaixoMeta = ranking.filter(x => x.icm != null && x.icm < 100);
+  const lider      = ranking[0];
+
+  const fBrl  = v => v == null ? '—' : 'R$ ' + (v >= 1e6
+    ? (v / 1e6).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MM'
+    : v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
+  const fPct  = (v, d = 1) => v == null ? '—' : v.toFixed(d).replace('.', ',') + '%';
+  const fIcmColor = v => v == null ? '#64748b' : v >= 100 ? '#059669' : v >= 85 ? '#D97706' : '#DC2626';
+  const fBadgeCls = v => v == null ? 'badge-grey' : v >= 100 ? 'badge-green' : v >= 85 ? 'badge-gold' : 'badge-red';
+
+  const metaGeral   = rg.metaMensal  || tot.meta;
+  const recupGeral  = rg.recuperacaoAtual || tot.recuperado;
+  const icmGeral    = (metaGeral && recupGeral) ? recupGeral / metaGeral * 100 : tot.icm;
+  const pctMetaGeral = (metaGeral && recupGeral) ? fPct(recupGeral / metaGeral * 100) : '—';
+
+  const tableRows = ranking.map((ass, i) => {
+    const icm = ass.icm;
+    return `<tr>
+      <td class="pos-cell">${medals[i] || (i + 1) + 'º'}</td>
+      <td class="name-cell">${ass.nome}</td>
+      <td>${fBrl(ass.carteira)}</td>
+      <td>${fBrl(ass.meta)}</td>
+      <td>${fBrl(ass.recuperado)}</td>
+      <td style="font-weight:700;color:${fIcmColor(icm)}">${fPct(ass.eficAtual, 2)}</td>
+      <td>${fPct(ass.metaEfic, 2)}</td>
+      <td><span class="badge ${fBadgeCls(icm)}">${icm != null ? fPct(icm) : '—'}</span></td>
+    </tr>`;
+  }).join('');
+
+  const totalRow = `<tr class="total-row">
+    <td>—</td>
+    <td>TOTAL</td>
+    <td>${fBrl(tot.carteira)}</td>
+    <td>${fBrl(metaGeral)}</td>
+    <td>${fBrl(recupGeral)}</td>
+    <td>—</td>
+    <td>—</td>
+    <td><span class="badge ${fBadgeCls(icmGeral)}">${icmGeral != null ? fPct(icmGeral) : '—'}</span></td>
+  </tr>`;
+
+  const insights = [
+    `🏅 <strong>Melhor eficiência:</strong> ${lider.nome} com ${fPct(lider.eficAtual, 2)} sobre a carteira${lider.icm != null ? ` (ICM: ${fPct(lider.icm)})` : ''}.`,
+    acimaMeta.length > 0
+      ? `✅ <strong>${acimaMeta.length} assessoria${acimaMeta.length > 1 ? 's' : ''} acima da meta:</strong> ${acimaMeta.map(x => x.nome).join(', ')}.`
+      : `⚠️ <strong>Nenhuma assessoria</strong> atingiu 100% do ICM neste período.`,
+    abaixoMeta.length > 0
+      ? `🔴 <strong>Abaixo da meta:</strong> ${abaixoMeta.map(x => x.nome + ' (ICM ' + fPct(x.icm) + ')').join(', ')}.`
+      : '',
+    metaGeral
+      ? `📊 <strong>Resultado consolidado:</strong> ${fBrl(recupGeral)} recuperados de ${fBrl(metaGeral)} de meta em ${mesLabel} — ${pctMetaGeral} da meta mensal.`
+      : '',
+  ].filter(Boolean).map(t => `<p>${t}</p>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ranking de Assessorias — ${mesLabel}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #fff; color: #1e293b;
+      padding: 36px 44px; max-width: 900px; margin: 0 auto; font-size: 14px;
+    }
+
+    /* ── HEADER ── */
+    .doc-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      border-bottom: 3px solid #0F2461; padding-bottom: 16px; margin-bottom: 24px;
+    }
+    .doc-header-brand { font-size: 1.6rem; font-weight: 900; color: #0F2461; font-style: italic; letter-spacing: -.02em; }
+    .doc-header-sub   { font-size: .78rem; color: #64748b; margin-top: 3px; }
+    .doc-header-meta  { text-align: right; font-size: .78rem; color: #64748b; line-height: 1.7; }
+    .doc-header-meta strong { color: #0F2461; font-size: .95rem; }
+
+    /* ── SECTION TITLE ── */
+    .sec { font-size: .7rem; font-weight: 700; color: #0F2461; text-transform: uppercase;
+           letter-spacing: .09em; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin: 22px 0 12px; }
+
+    /* ── MACRO CARDS ── */
+    .macro-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 4px; }
+    .macro-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; }
+    .macro-card .lbl { font-size: .7rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+    .macro-card .val { font-size: 1.05rem; font-weight: 700; color: #0F2461; }
+    .macro-card .sub { font-size: .72rem; color: #94a3b8; margin-top: 3px; }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; margin-bottom: 4px; }
+    thead tr { background: #0F2461; }
+    thead th { padding: 9px 11px; color: #fff; text-align: center; font-weight: 600;
+               font-size: .75rem; letter-spacing: .02em; }
+    thead th:nth-child(2) { text-align: left; }
+    tbody tr { border-bottom: 1px solid #f1f5f9; transition: background .1s; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody td { padding: 9px 11px; text-align: center; }
+    .pos-cell  { font-size: 1.05rem; text-align: center; width: 36px; }
+    .name-cell { text-align: left; font-weight: 600; }
+    .total-row { background: #f0f4ff; border-top: 2px solid #0F2461; font-weight: 700; }
+    .total-row td { padding: 10px 11px; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: .78rem; font-weight: 700; }
+    .badge-green { background: #D1FAE5; color: #065F46; }
+    .badge-gold  { background: #FEF3C7; color: #92400E; }
+    .badge-red   { background: #FEE2E2; color: #991B1B; }
+    .badge-grey  { background: #F1F5F9; color: #475569; }
+
+    /* ── INSIGHTS ── */
+    .insights { background: #F0F4FF; border-left: 4px solid #0F2461;
+                border-radius: 0 8px 8px 0; padding: 14px 18px; }
+    .ins-title { font-size: .7rem; font-weight: 700; color: #0F2461;
+                 text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+    .insights p { font-size: .85rem; color: #334155; line-height: 1.65; margin-bottom: 7px; }
+    .insights p:last-child { margin-bottom: 0; }
+
+    /* ── FOOTER ── */
+    .doc-footer { border-top: 1px solid #e2e8f0; margin-top: 24px; padding-top: 10px;
+                  font-size: .72rem; color: #94a3b8; display: flex; justify-content: space-between; }
+
+    @media print {
+      body { padding: 16px; }
+      @page { margin: 1.2cm; size: A4 portrait; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="doc-header">
+    <div>
+      <div class="doc-header-brand">Z-ON Card</div>
+      <div class="doc-header-sub">KPIs · Cobrança · Ranking de Performance</div>
+    </div>
+    <div class="doc-header-meta">
+      <strong>${mesLabel}</strong>
+      Referência do período<br>
+      Gerado em ${dataGeracao}
+    </div>
+  </div>
+
+  <p class="sec">KPIs Consolidados — Resultado Geral</p>
+  <div class="macro-grid">
+    <div class="macro-card">
+      <div class="lbl">Carteira Total</div>
+      <div class="val">${fBrl(tot.carteira)}</div>
+    </div>
+    <div class="macro-card">
+      <div class="lbl">Meta Mensal</div>
+      <div class="val">${fBrl(metaGeral)}</div>
+    </div>
+    <div class="macro-card">
+      <div class="lbl">Recuperado</div>
+      <div class="val">${fBrl(recupGeral)}</div>
+      <div class="sub">${pctMetaGeral} da meta</div>
+    </div>
+    <div class="macro-card">
+      <div class="lbl">ICM Consolidado</div>
+      <div class="val" style="color:${fIcmColor(icmGeral)}">${icmGeral != null ? fPct(icmGeral) : '—'}</div>
+      <div class="sub">${icmGeral >= 100 ? '✓ Meta atingida' : icmGeral >= 85 ? 'Em alerta' : 'Abaixo da meta'}</div>
+    </div>
+  </div>
+
+  <p class="sec">Ranking por Eficiência (% sobre carteira)</p>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th style="text-align:left">Assessoria</th>
+        <th>Carteira Total</th>
+        <th>Meta Mensal</th>
+        <th>Recuperado</th>
+        <th>Efic. Atual</th>
+        <th>Meta Efic.</th>
+        <th>ICM s/ Meta</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${tableRows}
+      ${totalRow}
+    </tbody>
+  </table>
+
+  <p class="sec">Insights Automáticos</p>
+  <div class="insights">
+    <div class="ins-title">⚡ Destaques do período</div>
+    ${insights}
+  </div>
+
+  <div class="doc-footer">
+    <span>Z-ON Card · KPIs de Cobrança · Uso Interno</span>
+    <span>Atualização automática · ${dataGeracao}</span>
+  </div>
+
+  <script>window.onload = function() { window.print(); }<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=960,height=800');
+  if (!win) {
+    alert('Permita pop-ups nesta página para exportar o PDF.');
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+}
