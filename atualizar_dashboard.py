@@ -486,6 +486,12 @@ def atualizar_dashboard():
 
     # SEGMENTO DE FAIXA
     sf = dados["segmentoFaixa"]
+    sf["segmentos"]  = [
+        "Curto atraso (5–30d)",
+        "Médio atraso (31–90d)",
+        "Tardia crítica (91–180d)",
+        "Loss (181d+)"
+    ]
     sf["meta"]       = [r2(v) for v in seg_meta]
     sf["recuperado"] = [r2(v) for v in seg_real]
     sf["projecao"]   = [r2(v) for v in seg_proj]
