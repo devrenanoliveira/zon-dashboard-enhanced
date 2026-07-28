@@ -572,7 +572,7 @@ def atualizar_dashboard():
         "eficAtual":   tot_efic_atual,
         "eficProj":    tot_efic_proj,
     }
-    print(f"✅ Assessorias: {[a['id'] for a in ass_lista]} | Total recup: {tot_recup} | ICM: {tot_icm}%")
+    print(f"✅ Assessorias: {[a['id'] for a in ass_lista]} | Total recup: {tot_recup} | Efic. atual: {tot_efic_atual}% | Efic. proj.: {tot_efic_proj}%")
 
     # PERFORMANCE DE VENCIMENTOS — leitura automática do CSV separado
     processar_performance_vencimentos(dados)
