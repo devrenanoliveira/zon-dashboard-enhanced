@@ -510,6 +510,60 @@ def atualizar_dashboard():
     me["globalVarTrim"]      = r2(var_trim_global)
     me["globalIcmMeta"]      = icm_efic_proj
 
+    # ─── ASSESSORIAS ──────────────────────────────────────────────
+    IDS_ASSESSORIAS = [
+        {"id": "afr", "nome": "Fácil Resultado"},
+        {"id": "apm", "nome": "PG+"},
+        {"id": "ad",  "nome": "Decisão"},
+    ]
+
+    ass_lista = []
+    for a in IDS_ASSESSORIAS:
+        aid   = a["id"]
+        cart  = dados_map.get(f"{aid}_carteira_total")
+        meta  = dados_map.get(f"{aid}_meta_valor")
+        recup = dados_map.get(f"{aid}_recuperado_atual")
+        mefic = dados_map.get(f"{aid}_meta_efic")
+        efic  = dados_map.get(f"{aid}_efic_atual")
+
+        cart  = r2(cart)  if cart  is not None else None
+        meta  = r2(meta)  if meta  is not None else None
+        recup = r2(recup) if recup is not None else None
+        mefic = r2(mefic) if mefic is not None else None
+        efic  = r2(efic)  if efic  is not None else None
+
+        icm      = r2(recup / meta * 100)  if (recup is not None and meta and meta > 0)  else None
+        efic_proj = r2(recup / cart * 100) if (recup is not None and cart and cart > 0) else None
+
+        ass_lista.append({
+            "id":        aid,
+            "nome":      a["nome"],
+            "carteira":  cart,
+            "meta":      meta,
+            "recuperado": recup,
+            "metaEfic":  mefic,
+            "eficAtual": efic,
+            "icm":       icm,
+            "eficProj":  efic_proj,
+        })
+
+    # Totais consolidados
+    tot_cart  = sum(a["carteira"]    or 0 for a in ass_lista) or None
+    tot_meta  = sum(a["meta"]        or 0 for a in ass_lista) or None
+    tot_recup = sum(a["recuperado"]  or 0 for a in ass_lista) or None
+    tot_icm   = r2(tot_recup / tot_meta * 100) if (tot_recup and tot_meta and tot_meta > 0) else None
+
+    if "assessorias" not in dados:
+        dados["assessorias"] = {}
+    dados["assessorias"]["lista"]  = ass_lista
+    dados["assessorias"]["totais"] = {
+        "carteira":   r2(tot_cart),
+        "meta":       r2(tot_meta),
+        "recuperado": r2(tot_recup),
+        "icm":        tot_icm,
+    }
+    print(f"✅ Assessorias: {[a['id'] for a in ass_lista]} | Total recup: {tot_recup} | ICM: {tot_icm}%")
+
     # PERFORMANCE DE VENCIMENTOS — leitura automática do CSV separado
     processar_performance_vencimentos(dados)
 
