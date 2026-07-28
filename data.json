@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "28/07/2026, 12:15",
+    "lastUpdated": "28/07/2026, 14:31",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -1211,7 +1211,9 @@
         "metaEfic": 6.0,
         "eficAtual": 0.56,
         "icm": 9.38,
-        "eficProj": 0.56
+        "projecao": 49736.84,
+        "eficProj": 0.62,
+        "icmProj": 10.36
       },
       {
         "id": "apm",
@@ -1222,7 +1224,9 @@
         "metaEfic": 6.0,
         "eficAtual": 1.0,
         "icm": 16.67,
-        "eficProj": 1.0
+        "projecao": 33157.89,
+        "eficProj": 1.11,
+        "icmProj": 18.42
       },
       {
         "id": "ad",
@@ -1233,14 +1237,19 @@
         "metaEfic": 6.0,
         "eficAtual": 2.4,
         "icm": 40.0,
-        "eficProj": 2.4
+        "projecao": 132631.58,
+        "eficProj": 2.65,
+        "icmProj": 44.21
       }
     ],
     "totais": {
       "carteira": 16000000.0,
       "meta": 960000.0,
       "recuperado": 195000.0,
-      "icm": 20.31
+      "projecao": 215526.31,
+      "icm": 20.31,
+      "icmProj": 22.45,
+      "eficProj": 1.35
     }
   }
 }
