@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "28/07/2026, 14:31",
+    "lastUpdated": "28/07/2026, 14:55",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -1208,12 +1208,12 @@
         "carteira": 8000000.0,
         "meta": 480000.0,
         "recuperado": 45000.0,
+        "projecao": 49736.84,
         "metaEfic": 6.0,
         "eficAtual": 0.56,
-        "icm": 9.38,
-        "projecao": 49736.84,
+        "icmEficAtual": 9.33,
         "eficProj": 0.62,
-        "icmProj": 10.36
+        "icmEficProj": 10.33
       },
       {
         "id": "apm",
@@ -1221,12 +1221,12 @@
         "carteira": 3000000.0,
         "meta": 180000.0,
         "recuperado": 30000.0,
+        "projecao": 33157.89,
         "metaEfic": 6.0,
         "eficAtual": 1.0,
-        "icm": 16.67,
-        "projecao": 33157.89,
+        "icmEficAtual": 16.67,
         "eficProj": 1.11,
-        "icmProj": 18.42
+        "icmEficProj": 18.5
       },
       {
         "id": "ad",
@@ -1234,12 +1234,12 @@
         "carteira": 5000000.0,
         "meta": 300000.0,
         "recuperado": 120000.0,
+        "projecao": 132631.58,
         "metaEfic": 6.0,
         "eficAtual": 2.4,
-        "icm": 40.0,
-        "projecao": 132631.58,
+        "icmEficAtual": 40.0,
         "eficProj": 2.65,
-        "icmProj": 44.21
+        "icmEficProj": 44.17
       }
     ],
     "totais": {
@@ -1247,8 +1247,7 @@
       "meta": 960000.0,
       "recuperado": 195000.0,
       "projecao": 215526.31,
-      "icm": 20.31,
-      "icmProj": 22.45,
+      "eficAtual": 1.22,
       "eficProj": 1.35
     }
   }
