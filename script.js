@@ -1790,6 +1790,8 @@ function _cfUpdateTabela() {
     }
   }
 
+  _cfUpdateDestaque(fases, em, isAtual, histData, histFases);
+
   document.getElementById('tableFasesBody').innerHTML = fases.map((f, i) => {
     if (_cfVista === 'pre'  && i > 5) return '';
     if (_cfVista === 'pos'  && i < 6) return '';
@@ -1840,6 +1842,97 @@ function _cfUpdateTabela() {
       <td class="${icmCls}">${icmVal != null ? icmVal.toFixed(1) + '%' : '—'}</td>
     </tr>`;
   }).join('');
+}
+
+function _cfUpdateDestaque(fases, em, isAtual, histData, histFases) {
+  const el = document.getElementById('cf-fases-destaque');
+  if (!el) return;
+
+  // Build per-faixa ICM array (use same logic as the table)
+  const icms = fases.map((f, i) => {
+    const meta = em.meta[i];
+    let eficVal;
+    if (isAtual)       eficVal = em.projAtual[i];
+    else if (histData) eficVal = histData[i];
+    else               eficVal = null;
+    if (meta == null || meta <= 0 || eficVal == null) return null;
+    return eficVal / meta * 100;
+  });
+
+  const labels = fases.map(f => f.faixa); // ['B','C','D','E','F','G','H','I','J']
+
+  // Pre-Prejuízo = indices 0-5 (B-G), Pós-Prejuízo = indices 6-8 (H-J)
+  const PRE_IDX = [0,1,2,3,4,5];
+  const POS_IDX = [6,7,8];
+
+  function groupInsight(indices, groupName, colorAccent) {
+    const entries = indices
+      .map(i => ({ label: labels[i], icm: icms[i], i }))
+      .filter(e => e.icm !== null);
+
+    if (entries.length === 0) return `<p style="color:#64748b; font-size:.82rem;">Sem dados de ICM para ${groupName}.</p>`;
+
+    const acima  = entries.filter(e => e.icm >= 100);
+    const abaixo = entries.filter(e => e.icm <  100);
+    const melhor = entries.reduce((a, b) => b.icm > a.icm ? b : a);
+    const pior   = entries.reduce((a, b) => b.icm < a.icm ? b : a);
+
+    const totFaixas = entries.length;
+    const pctAcima  = Math.round(acima.length / totFaixas * 100);
+
+    // Overall ICM for group: average of non-null ICMs
+    const avgIcm = entries.reduce((s, e) => s + e.icm, 0) / entries.length;
+
+    const icmFmt  = v => v != null ? v.toFixed(1) + '%' : '—';
+    const icmColor = v => v >= 100 ? '#16a34a' : v >= 85 ? '#b45309' : '#dc2626';
+
+    const statusEmoji = avgIcm >= 100 ? '✅' : avgIcm >= 85 ? '⚠️' : '❌';
+    const statusText  = avgIcm >= 100 ? 'acima da meta' : avgIcm >= 85 ? 'próximo da meta' : 'abaixo da meta';
+
+    let html = `
+      <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:6px;">
+        <span style="font-size:.95rem; font-weight:700; color:${colorAccent}">${groupName}</span>
+        <span style="font-size:.75rem; color:#64748b;">${statusEmoji} ICM médio <strong style="color:${icmColor(avgIcm)}">${icmFmt(avgIcm)}</strong> — ${statusText}</span>
+      </div>
+      <p style="font-size:.82rem; color:#374151; margin:0 0 4px 0; line-height:1.5;">
+        ${acima.length} de ${totFaixas} faixas bateram a meta (${pctAcima}%).
+        Destaque positivo: faixa <strong>${melhor.label}</strong> com ICM <strong style="color:${icmColor(melhor.icm)}">${icmFmt(melhor.icm)}</strong>.`;
+
+    if (abaixo.length > 0) {
+      html += ` Maior atenção: faixa <strong>${pior.label}</strong> com ICM <strong style="color:${icmColor(pior.icm)}">${icmFmt(pior.icm)}</strong>.`;
+    }
+    html += `</p>`;
+
+    if (abaixo.length > 0) {
+      const labels_ab = abaixo.map(e => `<span style="background:#fee2e2;color:#991b1b;border-radius:3px;padding:1px 5px;font-size:.75rem;">${e.label}</span>`).join(' ');
+      html += `<p style="font-size:.78rem; color:#64748b; margin:2px 0 0 0;">Faixas abaixo da meta: ${labels_ab}</p>`;
+    }
+    return html;
+  }
+
+  // Check if we have any data at all
+  const anyIcm = icms.some(v => v !== null);
+  if (!anyIcm) {
+    el.style.display = 'none';
+    return;
+  }
+
+  const preHtml = groupInsight(PRE_IDX, 'Pré-Prejuízo (B–G)', '#1e40af');
+  const posHtml = groupInsight(POS_IDX, 'Pós-Prejuízo (H–J)', '#7c3aed');
+
+  const label = isAtual ? 'projeção do mês atual' : 'resultado do período selecionado';
+
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:16px 20px;">
+      <p style="font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; margin:0 0 12px 0;">
+        💡 Insights — ${label}
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div style="border-left:3px solid #1e40af; padding-left:12px;">${preHtml}</div>
+        <div style="border-left:3px solid #7c3aed; padding-left:12px;">${posHtml}</div>
+      </div>
+    </div>`;
 }
 
 function initCarteiraFases() {
