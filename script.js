@@ -1917,10 +1917,25 @@ function _cfUpdateDestaque(fases, em, isAtual, histData, histFases) {
     return;
   }
 
-  const preHtml = groupInsight(PRE_IDX, 'Pré-Prejuízo (B–G)', '#1e40af');
-  const posHtml = groupInsight(POS_IDX, 'Pós-Prejuízo (H–J)', '#7c3aed');
-
+  const vista = _cfVista || 'ambos';
   const label = isAtual ? 'projeção do mês atual' : 'resultado do período selecionado';
+
+  let innerHtml;
+  if (vista === 'pre') {
+    const preHtml = groupInsight(PRE_IDX, 'Pré-Prejuízo (B–G)', '#1e40af');
+    innerHtml = `<div style="border-left:3px solid #1e40af; padding-left:12px;">${preHtml}</div>`;
+  } else if (vista === 'pos') {
+    const posHtml = groupInsight(POS_IDX, 'Pós-Prejuízo (H–J)', '#7c3aed');
+    innerHtml = `<div style="border-left:3px solid #7c3aed; padding-left:12px;">${posHtml}</div>`;
+  } else {
+    const preHtml = groupInsight(PRE_IDX, 'Pré-Prejuízo (B–G)', '#1e40af');
+    const posHtml = groupInsight(POS_IDX, 'Pós-Prejuízo (H–J)', '#7c3aed');
+    innerHtml = `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div style="border-left:3px solid #1e40af; padding-left:12px;">${preHtml}</div>
+        <div style="border-left:3px solid #7c3aed; padding-left:12px;">${posHtml}</div>
+      </div>`;
+  }
 
   el.style.display = 'block';
   el.innerHTML = `
@@ -1928,10 +1943,7 @@ function _cfUpdateDestaque(fases, em, isAtual, histData, histFases) {
       <p style="font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#94a3b8; margin:0 0 12px 0;">
         💡 Insights — ${label}
       </p>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-        <div style="border-left:3px solid #1e40af; padding-left:12px;">${preHtml}</div>
-        <div style="border-left:3px solid #7c3aed; padding-left:12px;">${posHtml}</div>
-      </div>
+      ${innerHtml}
     </div>`;
 }
 
