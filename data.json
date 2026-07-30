@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "29/07/2026, 10:55",
+    "lastUpdated": "30/07/2026, 09:08",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -8,13 +8,13 @@
   },
   "resultadoGeral": {
     "metaMensal": 6256206.42,
-    "recuperacaoAtual": 6081235.79,
+    "recuperacaoAtual": 6241546.43,
     "diasUteisTotais": 23,
-    "diasUteisDecorridos": 20,
-    "eficienciaAtual": 97.2,
+    "diasUteisDecorridos": 21,
+    "eficienciaAtual": 99.77,
     "eficienciaAnterior": 81.42,
-    "taxaRecuperacao": 6.71,
-    "projecaoMes": 7361495.96,
+    "taxaRecuperacao": 6.23,
+    "projecaoMes": 6835979.42,
     "historico": [
       {
         "mes": "Jan/26",
@@ -71,19 +71,19 @@
       {
         "mes": "Jul/26*",
         "meta": 6256206.42,
-        "recuperado": 6081235.79,
+        "recuperado": 6241546.43,
         "metaPre": 5820124.91,
-        "recupPre": 5708139.68,
+        "recupPre": 5852983.85,
         "metaPos": 436081.51,
-        "recupPos": 373096.11,
+        "recupPos": 388562.58,
         "diasUteis": 23
       }
     ],
-    "eficAtualMes": 5.6,
-    "eficProjMes": 6.71,
+    "eficAtualMes": 5.74,
+    "eficProjMes": 6.23,
     "metaEficMes": 5.69,
-    "icmEficAtual": 98.42,
-    "icmEficProj": 117.93,
+    "icmEficAtual": 100.88,
+    "icmEficProj": 109.49,
     "eficienciaHistorico": [
       {
         "mes": "Jan/26",
@@ -135,14 +135,14 @@
       },
       {
         "mes": "Jul/26*",
-        "eficAtual": 5.6,
-        "eficProj": 6.71,
+        "eficAtual": 5.74,
+        "eficProj": 6.23,
         "metaEfic": 5.69,
-        "icmEficAtual": 98.42,
-        "icmEficProj": 117.93
+        "icmEficAtual": 100.88,
+        "icmEficProj": 109.49
       }
     ],
-    "diarioAtual": 165914
+    "diarioAtual": 160311
   },
   "producaoPorDU": {
     "meses": {
@@ -388,6 +388,10 @@
           {
             "du": 28,
             "val": 58612.78
+          },
+          {
+            "du": 29,
+            "val": 53071.45
           }
         ]
       }
@@ -476,6 +480,10 @@
       {
         "du": 20,
         "val": 165914
+      },
+      {
+        "du": 21,
+        "val": 160311
       }
     ],
     "mesAnterior": [
@@ -566,20 +574,20 @@
     ]
   },
   "carteiraFases": {
-    "totalCarteira": 108677681.5,
+    "totalCarteira": 108675287.08,
     "preJuizo": {
-      "valor": 32889987.8,
+      "valor": 32883925.04,
       "percentual": 30.26,
-      "taxaRec": 17.36,
+      "taxaRec": 17.8,
       "variacao": 0
     },
     "posJuizo": {
       "valor": 76326681.08,
       "percentual": 70.23,
-      "taxaRec": 0.49,
+      "taxaRec": 0.51,
       "variacao": 0
     },
-    "projecaoRecuperacao": 7361495.96,
+    "projecaoRecuperacao": 6835979.42,
     "evolucao": [
       {
         "mes": "Jan",
@@ -613,112 +621,112 @@
       },
       {
         "mes": "Jul*",
-        "pre": 32889987.8,
+        "pre": 32883925.04,
         "pos": 76326681.08
       }
     ],
     "fases": [
       {
         "faixa": "B (05–30d)",
-        "valor": 8029343.6,
+        "valor": 8028320.87,
         "pct": 7.39,
-        "taxaRec": 58.53
+        "taxaRec": 59.86
       },
       {
         "faixa": "C (31–65d)",
-        "valor": 4791438.0,
+        "valor": 4790580.65,
         "pct": 4.41,
-        "taxaRec": 11.98
+        "taxaRec": 12.36
       },
       {
         "faixa": "D (66–90d)",
-        "valor": 4309638.78,
-        "pct": 3.97,
-        "taxaRec": 4.49
+        "valor": 4306266.86,
+        "pct": 3.96,
+        "taxaRec": 4.66
       },
       {
         "faixa": "E (91–120d)",
         "valor": 5233893.16,
         "pct": 4.82,
-        "taxaRec": 2.04
+        "taxaRec": 2.25
       },
       {
         "faixa": "F (121–150d)",
         "valor": 5100451.84,
         "pct": 4.69,
-        "taxaRec": 1.58
+        "taxaRec": 1.59
       },
       {
         "faixa": "G (151–180d)",
-        "valor": 5425222.42,
+        "valor": 5424411.66,
         "pct": 4.99,
-        "taxaRec": 0.99
+        "taxaRec": 1.02
       },
       {
         "faixa": "H (181–360d)",
-        "valor": 28290681.12,
+        "valor": 28290934.61,
         "pct": 26.03,
-        "taxaRec": 0.77
+        "taxaRec": 0.79
       },
       {
         "faixa": "I (361–720d)",
-        "valor": 36900637.9,
-        "pct": 33.95,
-        "taxaRec": 0.34
+        "valor": 36904052.75,
+        "pct": 33.96,
+        "taxaRec": 0.36
       },
       {
         "faixa": "J (720d+)",
         "valor": 10596374.68,
         "pct": 9.75,
-        "taxaRec": 0.29
+        "taxaRec": 0.31
       }
     ],
     "evolucaoFases": {
       "Jul": [
         {
-          "valor": 8029343.6,
+          "valor": 8028320.87,
           "pct": 7.39,
-          "taxaRec": 58.53
+          "taxaRec": 59.86
         },
         {
-          "valor": 4791438.0,
+          "valor": 4790580.65,
           "pct": 4.41,
-          "taxaRec": 11.98
+          "taxaRec": 12.36
         },
         {
-          "valor": 4309638.78,
-          "pct": 3.97,
-          "taxaRec": 4.49
+          "valor": 4306266.86,
+          "pct": 3.96,
+          "taxaRec": 4.66
         },
         {
           "valor": 5233893.16,
           "pct": 4.82,
-          "taxaRec": 2.04
+          "taxaRec": 2.25
         },
         {
           "valor": 5100451.84,
           "pct": 4.69,
-          "taxaRec": 1.58
+          "taxaRec": 1.59
         },
         {
-          "valor": 5425222.42,
+          "valor": 5424411.66,
           "pct": 4.99,
-          "taxaRec": 0.99
+          "taxaRec": 1.02
         },
         {
-          "valor": 28290681.12,
+          "valor": 28290934.61,
           "pct": 26.03,
-          "taxaRec": 0.77
+          "taxaRec": 0.79
         },
         {
-          "valor": 36900637.9,
-          "pct": 33.95,
-          "taxaRec": 0.34
+          "valor": 36904052.75,
+          "pct": 33.96,
+          "taxaRec": 0.36
         },
         {
           "valor": 10596374.68,
           "pct": 9.75,
-          "taxaRec": 0.29
+          "taxaRec": 0.31
         }
       ]
     }
@@ -737,28 +745,28 @@
       436081.51
     ],
     "recuperado": [
-      4699379.92,
-      767764.94,
-      240994.82,
-      373096.11
+      4806001.81,
+      792685.71,
+      254296.33,
+      388562.58
     ],
     "projecao": [
-      5688723.06,
-      929399.66,
-      291730.57,
-      451642.66
+      5263716.27,
+      868179.59,
+      278515.03,
+      425568.54
     ],
     "icm": [
-      127.98,
-      85.05,
-      103.29,
-      103.57
+      118.42,
+      79.45,
+      98.61,
+      97.59
     ],
     "taxa": [
-      58.53,
-      8.43,
-      1.53,
-      0.49
+      59.86,
+      8.71,
+      1.61,
+      0.51
     ]
   },
   "performanceVencimentos": {
@@ -774,7 +782,7 @@
         "variacao": 1.95
       },
       "emMaturacao": {
-        "atual": 1,
+        "atual": 0,
         "total": 3
       }
     },
@@ -841,9 +849,9 @@
       },
       {
         "dia": 25,
-        "status": "maturando",
-        "parcial": true,
-        "diaCorrido": 4,
+        "status": "maturado",
+        "parcial": false,
+        "diaCorrido": null,
         "mesD0": null,
         "mesD4": null,
         "mediaTrimD0": 44.67,
@@ -1139,15 +1147,15 @@
         0.39
       ],
       "Jul": [
-        58.53,
-        11.98,
-        4.49,
-        2.04,
-        1.58,
-        0.99,
-        0.77,
-        0.34,
-        0.29
+        59.86,
+        12.36,
+        4.66,
+        2.25,
+        1.59,
+        1.02,
+        0.79,
+        0.36,
+        0.31
       ]
     },
     "meta": [
@@ -1162,26 +1170,26 @@
       0.35
     ],
     "varTrim": [
-      36.59,
-      -1.37,
-      8.51,
-      16.69,
-      30.21,
-      36.93,
-      26.53,
-      7.64,
-      34.84
+      26.38,
+      -7.96,
+      1.65,
+      16.16,
+      18.89,
+      28.13,
+      17.29,
+      3.48,
+      31.41
     ],
     "icmMeta": [
-      127.98,
-      79.42,
-      107.56,
-      89.26,
-      120.0,
-      115.45,
-      108.33,
-      97.62,
-      102.86
+      118.42,
+      74.1,
+      100.89,
+      88.89,
+      109.29,
+      108.18,
+      100.0,
+      92.86,
+      100.0
     ],
     "globalHistorico": {
       "Jan": 6.56,
@@ -1190,23 +1198,23 @@
       "Abr": 6.77,
       "Mai": 6.95,
       "Jun": 6.05,
-      "Jul": 5.6
+      "Jul": 5.74
     },
     "globalMeta": 5.69,
-    "globalVarTrim": 1.85,
-    "globalIcmMeta": 117.93,
+    "globalVarTrim": -5.42,
+    "globalIcmMeta": 109.49,
     "projAtual": [
-      79.35,
-      13.74,
-      4.84,
-      2.41,
-      1.68,
-      1.27,
-      0.91,
-      0.41,
-      0.36
+      73.42,
+      12.82,
+      4.54,
+      2.4,
+      1.53,
+      1.19,
+      0.84,
+      0.39,
+      0.35
     ],
-    "globalProjAtual": 6.71
+    "globalProjAtual": 6.23
   },
   "assessorias": {
     "lista": [
@@ -1216,12 +1224,12 @@
         "carteira": 8000000.0,
         "meta": 480000.0,
         "recuperado": 45000.0,
-        "projecao": 47250.0,
+        "projecao": null,
         "metaEfic": 6.0,
         "eficAtual": 0.56,
         "icmEficAtual": 9.33,
-        "eficProj": 0.59,
-        "icmEficProj": 9.83
+        "eficProj": null,
+        "icmEficProj": null
       },
       {
         "id": "apm",
@@ -1229,12 +1237,12 @@
         "carteira": 3000000.0,
         "meta": 180000.0,
         "recuperado": 30000.0,
-        "projecao": 31500.0,
+        "projecao": null,
         "metaEfic": 6.0,
         "eficAtual": 1.0,
         "icmEficAtual": 16.67,
-        "eficProj": 1.05,
-        "icmEficProj": 17.5
+        "eficProj": null,
+        "icmEficProj": null
       },
       {
         "id": "ad",
@@ -1242,21 +1250,21 @@
         "carteira": 5000000.0,
         "meta": 300000.0,
         "recuperado": 120000.0,
-        "projecao": 126000.0,
+        "projecao": null,
         "metaEfic": 6.0,
         "eficAtual": 2.4,
         "icmEficAtual": 40.0,
-        "eficProj": 2.52,
-        "icmEficProj": 42.0
+        "eficProj": null,
+        "icmEficProj": null
       }
     ],
     "totais": {
       "carteira": 16000000.0,
       "meta": 960000.0,
       "recuperado": 195000.0,
-      "projecao": 204750.0,
+      "projecao": null,
       "eficAtual": 1.22,
-      "eficProj": 1.28
+      "eficProj": null
     }
   }
 }
