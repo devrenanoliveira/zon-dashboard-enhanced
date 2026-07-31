@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "31/07/2026, 10:50",
+    "lastUpdated": "31/07/2026, 18:19",
     "mesReferencia": "Julho 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
@@ -780,14 +780,14 @@
   "performanceVencimentos": {
     "resumo": {
       "d0": {
-        "percentual": 56.96,
+        "percentual": 56.84,
         "vsMedia": 55.12,
-        "variacao": 1.84
+        "variacao": 1.72
       },
       "d4": {
-        "percentual": 69.47,
+        "percentual": 69.34,
         "vsMedia": 67.52,
-        "variacao": 1.95
+        "variacao": 1.82
       },
       "emMaturacao": {
         "atual": 0,
@@ -812,60 +812,60 @@
         "status": "maturado",
         "parcial": false,
         "diaCorrido": null,
-        "mesD0": 51.18,
-        "mesD4": 71.89,
+        "mesD0": 51.1,
+        "mesD4": 71.77,
         "mediaTrimD0": 55.49,
         "mediaTrimD4": 71.03,
-        "varD0": -4.31,
-        "varD4": 0.86
+        "varD0": -4.39,
+        "varD4": 0.74
       },
       {
         "dia": 10,
         "status": "maturado",
         "parcial": false,
         "diaCorrido": null,
-        "mesD0": 62.77,
-        "mesD4": 68.95,
+        "mesD0": 62.5,
+        "mesD4": 68.66,
         "mediaTrimD0": 58.42,
         "mediaTrimD4": 67.24,
-        "varD0": 4.35,
-        "varD4": 1.71
+        "varD0": 4.08,
+        "varD4": 1.42
       },
       {
         "dia": 15,
         "status": "maturado",
         "parcial": false,
         "diaCorrido": null,
-        "mesD0": 59.12,
-        "mesD4": 66.28,
+        "mesD0": 58.92,
+        "mesD4": 66.07,
         "mediaTrimD0": 55.02,
         "mediaTrimD4": 62.53,
-        "varD0": 4.1,
-        "varD4": 3.75
+        "varD0": 3.9,
+        "varD4": 3.54
       },
       {
         "dia": 20,
         "status": "maturado",
         "parcial": false,
         "diaCorrido": null,
-        "mesD0": 47.94,
-        "mesD4": 56.83,
+        "mesD0": 47.79,
+        "mesD4": 58.32,
         "mediaTrimD0": 43.85,
         "mediaTrimD4": 54.68,
-        "varD0": 4.09,
-        "varD4": 2.15
+        "varD0": 3.94,
+        "varD4": 3.64
       },
       {
         "dia": 25,
         "status": "maturado",
         "parcial": false,
         "diaCorrido": null,
-        "mesD0": null,
-        "mesD4": null,
+        "mesD0": 42.86,
+        "mesD4": 57.23,
         "mediaTrimD0": 44.67,
         "mediaTrimD4": 55.45,
-        "varD0": null,
-        "varD4": null
+        "varD0": -1.81,
+        "varD4": 1.78
       }
     ],
     "curvaRecuperacao": {
