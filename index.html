@@ -450,8 +450,9 @@
   </div>
 
   <div class="table-card">
-    <div class="table-card-header">
+    <div class="table-card-header" style="flex-wrap:wrap;gap:8px">
       <span class="chart-title" style="margin:0">Vencimentos do Mês</span>
+      <div class="filter-row" id="pvTabelaMesFilter" style="margin:0;padding:0;gap:4px"></div>
     </div>
     <div class="table-scroll">
       <table id="tableVenc">
@@ -459,10 +460,10 @@
           <tr>
             <th>Dia Vencto.</th>
             <th>Média Trim. D0</th>
-            <th>Mês Atual (D0)</th>
+            <th id="thMesD0">Mês Atual (D0)</th>
             <th>Var. D0</th>
             <th>Média Trim. D4</th>
-            <th>Mês Atual (D4)</th>
+            <th id="thMesD4">Mês Atual (D4)</th>
             <th>Var. D4</th>
             <th>Status</th>
           </tr>
