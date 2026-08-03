@@ -1044,10 +1044,8 @@ function rduToggleComp(mes) {
     _rduCompMeses.add(mes);
   }
   _rduBuildCompFilter();
-  const d = DATA.recuperacaoPorDU;
-  const isAtual = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
-  const serie   = isAtual ? d.mesAtual : d.mesAnterior;
-  const mesNome = isAtual ? DATA.meta.mesReferencia : DATA.meta.mesAnterior;
+  const serie   = _rduDuData[_rduMes] || [];
+  const mesNome = _rduMes ? _rduMes.replace('*','') : '';
   _rduRenderCharts(serie, mesNome);
 }
 
@@ -1076,34 +1074,31 @@ function _rduUpdateMes() {
   const hist    = DATA.resultadoGeral.historico;
   const detail  = document.getElementById('rdu-detail-wrap');
   const note    = document.getElementById('rdu-hist-note');
-  const isAtual    = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
-  const isAnterior = _rduMes && DATA.meta.mesAnterior && _rduMes === DATA.meta.mesAnterior;
-  const hasDU      = isAtual || isAnterior;
+
+  // Fonte única: _rduDuData[_rduMes] (populado de mesAtual, historicoDU)
+  const serie  = _rduDuData[_rduMes] || [];
+  const hasDU  = serie.length > 0;
+  const isAtual = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
 
   if (hasDU) {
     note.style.display   = 'none';
     detail.style.display = '';
-    const serie     = isAtual ? d.mesAtual    : d.mesAnterior;
-    const serieRef  = isAtual ? d.mesAnterior : null;
-    const mesNome   = isAtual ? DATA.meta.mesReferencia : DATA.meta.mesAnterior;
-    const mesRef    = isAtual ? DATA.meta.mesAnterior   : null;
-    const metaMes   = isAtual
-      ? d.metaMensal
-      : (hist.find(h => h.mes === DATA.meta.mesAnterior)?.meta || d.metaMensal);
+
+    const mesNome  = isAtual ? DATA.meta.mesReferencia : _rduMes.replace('*','');
     const totalDUs = isAtual ? d.totalDUs : serie.length;
+    const histEntry = hist.find(h => h.mes === _rduMes || h.mes.replace('*','') === _rduMes.replace('*',''));
+    const metaMes  = histEntry?.meta || d.metaMensal || 0;
 
     document.getElementById('rdu-subtitle').textContent =
       isAtual
         ? `${mesNome} (${serie.length} de ${totalDUs} DUs) · Meta: ${fmt.brl(metaMes)}`
         : `${mesNome} · ${serie.length} DUs · Meta: ${fmt.brl(metaMes)}`;
 
-    const totSerie = serie.reduce((s,x) => s+x.val, 0);
-    const media    = totSerie / serie.length;
-    const proj     = Math.round(media * totalDUs);
-    const icmProj  = metaMes > 0 ? proj / metaMes * 100 : 0;
-    const totRef   = serieRef ? serieRef.slice(0, serie.length).reduce((s,x) => s+x.val, 0) : null;
-    
-    const pctMetaVal = totSerie / metaMes * 100;
+    const totSerie   = serie.reduce((s,x) => s+x.val, 0);
+    const media      = totSerie / serie.length;
+    const proj       = Math.round(media * totalDUs);
+    const icmProj    = metaMes > 0 ? proj / metaMes * 100 : 0;
+    const pctMetaVal = metaMes > 0 ? totSerie / metaMes * 100 : 0;
     const realColor  = pctMetaVal < 85 ? '#EF4444' : pctMetaVal < 100 ? '#F59E0B' : '#10B981';
     const projColor  = icmProj < 85 ? '#EF4444' : icmProj < 100 ? '#F59E0B' : '#10B981';
     const projCl     = icmProj >= 100 ? 'green' : icmProj >= 85 ? 'gold' : 'red';
@@ -1123,7 +1118,7 @@ function _rduUpdateMes() {
       <div class="kpi-card">
         <div class="kpi-label">Média por DU</div>
         <div class="kpi-value">${fmt.brl(media)}</div>
-        <div class="kpi-sub">Meta/DU necessária: ${fmt.brl(metaMes / totalDUs)}</div>
+        <div class="kpi-sub">Meta/DU necessária: ${metaMes>0 ? fmt.brl(metaMes / totalDUs) : '—'}</div>
       </div>
       <div class="kpi-card ${projCl}">
         <div class="kpi-label">${isAtual ? 'Recuperação Projetada' : 'Recuperado no Mês'}</div>
@@ -1133,28 +1128,29 @@ function _rduUpdateMes() {
       <div class="kpi-card ${projCl}">
         <div class="kpi-label">${isAtual ? 'ICM Projetado' : 'ICM Realizado'}</div>
         <div class="kpi-value" style="color:${projColor}">${fmt.pct(isAtual ? icmProj : pctMetaVal)}</div>
-        <div class="kpi-sub">${totRef != null
-          ? `vs. ${mesRef} (${serie.length} DUs): ${totRef>0?((totSerie/totRef-1)*100 >= 0 ? '+' : '') + (((totSerie/totRef-1)*100).toFixed(1))+'%':'—'}`
-          : 'Sem comparativo por DU disponível'}</div>
+        <div class="kpi-sub">Sem comparativo por DU disponível</div>
       </div>
     `;
 
-    _rduRenderTabela(serie, serieRef, metaMes, totalDUs, mesNome, mesRef);
+    _rduRenderTabela(serie, null, metaMes, totalDUs, mesNome, null);
     _rduBuildCompFilter();
     _rduRenderCharts(serie, mesNome);
 
   } else {
+    // Mês sem breakdown diário — mostra KPIs agregados do historico
     detail.style.display = 'none';
     note.style.display   = '';
     const h = hist.find(x => x.mes === _rduMes);
     if (!h) return;
     const mesLabel = h.mes.replace('*','');
-    note.innerHTML = `<strong>ℹ️ Detalhamento por DU disponível apenas para ${DATA.meta.mesReferencia} e ${DATA.meta.mesAnterior}.</strong><br>
-      Selecione <strong>${DATA.meta.mesAnterior || 'mês anterior'}</strong> ou <strong>${DATA.meta.mesReferencia || 'mês atual'}</strong> para ver a tabela de DUs.`;
+    // Meses com DU disponível (para a nota informativa)
+    const comDU = Object.keys(_rduDuData).map(m => m.replace('*','')).join(' e ');
+    note.innerHTML = `<strong>ℹ️ Detalhamento por DU não disponível para ${mesLabel}.</strong><br>
+      Meses com detalhe por DU: <strong>${comDU || 'nenhum'}</strong>.`;
     document.getElementById('rdu-subtitle').textContent =
       `${mesLabel} — resultado total do mês encerrado`;
-    const icm    = h.recuperado / h.meta * 100;
-    const delta  = h.recuperado - h.meta;
+    const icm   = h.meta > 0 ? h.recuperado / h.meta * 100 : 0;
+    const delta = h.recuperado - h.meta;
     document.getElementById('rdu-kpis').innerHTML = `
       <div class="kpi-card">
         <div class="kpi-label">Meta do Mês</div>
@@ -1352,19 +1348,32 @@ function initRecupDU() {
 
   _rduDuData    = {};
   _rduCompMeses = new Set();
-  const parcialH   = hist.find(h => h.mes.includes('*'));
-  const anteriorH  = hist.length >= 2 ? hist[hist.length - 2] : null;
-  if (parcialH  && d.mesAtual   && d.mesAtual.length   > 0) _rduDuData[parcialH.mes]  = d.mesAtual;
-  if (anteriorH && d.mesAnterior && d.mesAnterior.length > 0) _rduDuData[anteriorH.mes] = d.mesAnterior;
-  // Meses históricos adicionais com label correto
+
+  // 1. Mês atual (parcial) → mesAtual
+  const parcialH = hist.find(h => h.mes.includes('*'));
+  if (parcialH && d.mesAtual && d.mesAtual.length > 0) _rduDuData[parcialH.mes] = d.mesAtual;
+
+  // 2. Histórico com breakdown por DU (ex: Jun/26)
   if (d.historicoDU) {
     Object.entries(d.historicoDU).forEach(([mes, dados]) => {
       if (dados && dados.length > 0 && !_rduDuData[mes]) _rduDuData[mes] = dados;
     });
   }
 
-  const mesesRDU = hist.slice(-5);
-  _rduMes = mesesRDU[mesesRDU.length - 1].mes; 
+  // 3. Seletor de meses: apenas meses com DU data OU meses fechados sem DU (para ver KPIs agregados)
+  //    Remove meses sem qualquer dado relevante (ex: Abr/Mai que não têm DU e ficam só repetindo)
+  //    Regra: incluir meses dos últimos 5 que têm _rduDuData OU são o mês anterior/atual
+  const mesCurto   = DATA.meta.mesCurto || '';
+  const mesAnterior = DATA.meta.mesAnterior || '';
+  const mesesRDU = hist.filter(h => {
+    const hasDuData = !!_rduDuData[h.mes];
+    const isAtual   = mesCurto && h.mes.includes(mesCurto);
+    const isAnterior = mesAnterior && h.mes === mesAnterior;
+    return hasDuData || isAtual || isAnterior;
+  });
+
+  _rduMes = mesesRDU.length > 0 ? mesesRDU[mesesRDU.length - 1].mes : (hist.length > 0 ? hist[hist.length-1].mes : null);
+
   document.getElementById('rdu-mes-filtros').innerHTML =
     '<span class="filter-label">Mês:</span>' +
     mesesRDU.map(h => {
