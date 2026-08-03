@@ -2436,8 +2436,10 @@ function initSegmentoFaixa() {
 // TAB 6 — PERFORMANCE DE VENCIMENTOS
 // ══════════════════════════════════════════════════════════════
 let _pvVenc = 'todos';
-let _pvMesSet = null;    
-let _pvBuildCurva = null; 
+let _pvMesSet = null;
+let _pvTabelaMes = null;
+let _pvBuildCurva = null;
+let _pvRenderTabela = null;
 
 function pvSetVenc(v) {
   _pvVenc = v;
@@ -2453,74 +2455,140 @@ function pvSetVenc(v) {
   if (_pvBuildCurva) _pvBuildCurva();
 }
 
+function pvSetTabelaMes(m) {
+  if (_pvRenderTabela) _pvRenderTabela(m);
+}
+
 function initPerfVenc() {
   const d = DATA.performanceVencimentos;
-  const r = d.resumo;
+  const historicoV = d.historicoVencimentos || {};
+  const mesAtualKey = DATA.meta.mesReferencia || ((DATA.meta.mesCurto || 'Ago') + '/26');
 
-  document.getElementById('pv-subtitle').textContent =
-    `% acumulado pago no vencimento (D0) e 4 dias após (D4) · ${DATA.meta.mesReferencia} (parcial) vs. Média ${DATA.meta.mediaReferencia}`;
-
-  document.getElementById('perfSummary').innerHTML = `
-    <div class="perf-card navy">
-      <div class="perf-label">D0 · Média Vencs. Maturados</div>
-      <div class="perf-big">${fmt.pct(r.d0.percentual)}</div>
-      <div class="perf-vs">vs ${fmt.pct(r.d0.vsMedia)} (<span style="color:#6EE7B7">+${r.d0.variacao.toFixed(1)}%</span>)</div>
-      <div class="perf-desc">Média trimestral (01, 05, 10)</div>
-    </div>
-    <div class="perf-card blue">
-      <div class="perf-label">D4 · Média Vencs. Fechados</div>
-      <div class="perf-big">${fmt.pct(r.d4.percentual)}</div>
-      <div class="perf-vs">vs ${fmt.pct(r.d4.vsMedia)} (<span style="color:#6EE7B7">+${r.d4.variacao.toFixed(1)}%</span>)</div>
-      <div class="perf-desc">Média trimestral (01, 05, 10)</div>
-    </div>
-    <div class="perf-card gold">
-      <div class="perf-label" style="color:var(--brand-navy)">Vencimentos em Maturação</div>
-      <div class="perf-big" style="color:var(--brand-navy)">${r.emMaturacao.atual} <span style="font-size:1.2rem;font-weight:500">de</span> ${r.emMaturacao.total}</div>
-      <div class="perf-vs" style="color:var(--ink-secondary)">D0 (15, 20, 25) / D4 (15, 20, 25)</div>
-      <div class="perf-desc" style="color:var(--brand-gold)">Ainda não fechados</div>
-    </div>
-  `;
+  // Months for table selector: current + historical (most recent first)
+  const histKeys = Object.keys(historicoV).reverse();
+  const tabelaMeses = [mesAtualKey, ...histKeys];
+  if (_pvTabelaMes === null || !tabelaMeses.includes(_pvTabelaMes)) _pvTabelaMes = mesAtualKey;
 
   const statusMap = {
     maturado:  { cls:'badge-maturado',  label:'Maturado (D0 e D4)' },
     maturando: { cls:'badge-maturando', label:'Em maturação' },
-    pendente:  { cls:'badge-pendente',  label:'Ainda não venceu' }
+    pendente:  { cls:'badge-pendente',  label:'Ainda não venceu' },
+    fechado:   { cls:'badge-maturado',  label:'Fechado' }
   };
 
-  document.getElementById('tableVencBody').innerHTML = d.vencimentos.map(v => {
-    const st = statusMap[v.status];
-    const isMaturando = v.status === 'maturando';
-    const isPendente  = v.status === 'pendente';
-    const dimCls = isMaturando ? '' : (isPendente ? 'td-muted' : '');
-    const d0Lbl  = v.mesD0  != null ? fmt.pct(v.mesD0) + (v.parcial ? '*' : '') : '—';
-    const d4Lbl  = v.mesD4  != null ? fmt.pct(v.mesD4) + (v.parcial ? '*' : '') : '—';
-    const v0Lbl  = v.varD0  != null ? `<span class="${v.varD0>0?'td-pos':'td-neg'}">${v.varD0>0?'+':''}${v.varD0.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
-    const v4Lbl  = v.varD4  != null ? `<span class="${v.varD4>0?'td-pos':'td-neg'}">${v.varD4>0?'+':''}${v.varD4.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
-    const diaLabel = isMaturando ? `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>` : (isPendente ? `<span class="td-muted">Dia ${v.dia}</span>` : `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`);
-    const subLabel = isMaturando ? ` <span class="td-muted" style="font-size:.7rem">(D${v.diaCorrido})</span>` : '';
-    return `<tr>
-      <td>${diaLabel}${subLabel}</td>
-      <td class="${dimCls}">${fmt.pct(v.mediaTrimD0)}</td>
-      <td class="td-blue">${d0Lbl}</td>
-      <td>${v0Lbl}</td>
-      <td class="${dimCls}">${fmt.pct(v.mediaTrimD4)}</td>
-      <td class="td-blue">${d4Lbl}</td>
-      <td>${v4Lbl}</td>
-      <td><span class="badge ${st.cls}">${st.label}${isMaturando&&v.diaCorrido?' (D'+v.diaCorrido+')':''}</span></td>
-    </tr>`;
-  }).join('');
+  // ── Render summary cards + table for a given month ──────────────
+  _pvRenderTabela = function(mesKey) {
+    _pvTabelaMes = mesKey;
+    document.querySelectorAll('[data-pvtab]').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.pvtab === mesKey));
 
+    const isAtual = mesKey === mesAtualKey;
+    const r     = isAtual ? d.resumo                          : (historicoV[mesKey]?.resumo       || d.resumo);
+    const vencs = isAtual ? d.vencimentos                     : (historicoV[mesKey]?.vencimentos  || []);
+    const suffixLabel = isAtual ? `${mesAtualKey} (parcial)` : mesKey;
+
+    document.getElementById('pv-subtitle').textContent =
+      `% acumulado pago no vencimento (D0) e 4 dias após (D4) · ${suffixLabel} vs. Média ${DATA.meta.mediaReferencia}`;
+
+    const thD0 = document.getElementById('thMesD0');
+    const thD4 = document.getElementById('thMesD4');
+    if (thD0) thD0.textContent = isAtual ? 'Mês Atual (D0)' : `${mesKey} (D0)`;
+    if (thD4) thD4.textContent = isAtual ? 'Mês Atual (D4)' : `${mesKey} (D4)`;
+
+    const d0pct = r?.d0?.percentual ?? null;
+    const d4pct = r?.d4?.percentual ?? null;
+    const d0med = r?.d0?.vsMedia    ?? null;
+    const d4med = r?.d4?.vsMedia    ?? null;
+    const d0var = r?.d0?.variacao   ?? 0;
+    const d4var = r?.d4?.variacao   ?? 0;
+    const vc0 = d0var >= 0 ? '#6EE7B7' : '#FCA5A5';
+    const vc4 = d4var >= 0 ? '#6EE7B7' : '#FCA5A5';
+    document.getElementById('perfSummary').innerHTML = `
+      <div class="perf-card navy">
+        <div class="perf-label">D0 · ${isAtual ? 'Média Vencs. Maturados' : 'Performance D0'}</div>
+        <div class="perf-big">${fmt.pct(d0pct)}</div>
+        <div class="perf-vs">vs ${fmt.pct(d0med)} (<span style="color:${vc0}">${d0var>=0?'+':''}${d0var.toFixed(1)}%</span>)</div>
+        <div class="perf-desc">Média trimestral (01, 05, 10)</div>
+      </div>
+      <div class="perf-card blue">
+        <div class="perf-label">D4 · ${isAtual ? 'Média Vencs. Fechados' : 'Performance D4'}</div>
+        <div class="perf-big">${fmt.pct(d4pct)}</div>
+        <div class="perf-vs">vs ${fmt.pct(d4med)} (<span style="color:${vc4}">${d4var>=0?'+':''}${d4var.toFixed(1)}%</span>)</div>
+        <div class="perf-desc">Média trimestral (01, 05, 10)</div>
+      </div>
+      <div class="perf-card gold">
+        <div class="perf-label" style="color:var(--brand-navy)">${isAtual ? 'Vencimentos em Maturação' : 'Vencimentos'}</div>
+        <div class="perf-big" style="color:var(--brand-navy)">${r?.emMaturacao?.atual ?? 0} <span style="font-size:1.2rem;font-weight:500">de</span> ${r?.emMaturacao?.total ?? 6}</div>
+        <div class="perf-vs" style="color:var(--ink-secondary)">D0 (15, 20, 25) / D4 (15, 20, 25)</div>
+        <div class="perf-desc" style="color:${isAtual ? 'var(--brand-gold)' : '#10B981'}">${isAtual ? 'Ainda não fechados' : 'Mês encerrado'}</div>
+      </div>`;
+
+    document.getElementById('tableVencBody').innerHTML = vencs.map(v => {
+      const st = statusMap[v.status] || statusMap.pendente;
+      const isMaturando = v.status === 'maturando';
+      const isPendente  = v.status === 'pendente';
+      const dimCls = isMaturando ? '' : (isPendente ? 'td-muted' : '');
+      const d0Lbl  = v.mesD0 != null ? fmt.pct(v.mesD0) + (v.parcial ? '*' : '') : '—';
+      const d4Lbl  = v.mesD4 != null ? fmt.pct(v.mesD4) + (v.parcial ? '*' : '') : '—';
+      const v0Lbl  = v.varD0 != null ? `<span class="${v.varD0>0?'td-pos':'td-neg'}">${v.varD0>0?'+':''}${v.varD0.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
+      const v4Lbl  = v.varD4 != null ? `<span class="${v.varD4>0?'td-pos':'td-neg'}">${v.varD4>0?'+':''}${v.varD4.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
+      const diaLabel = isMaturando
+        ? `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`
+        : (isPendente
+          ? `<span class="td-muted">Dia ${v.dia}</span>`
+          : `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`);
+      const subLabel = isMaturando ? ` <span class="td-muted" style="font-size:.7rem">(D${v.diaCorrido})</span>` : '';
+      return `<tr>
+        <td>${diaLabel}${subLabel}</td>
+        <td class="${dimCls}">${fmt.pct(v.mediaTrimD0)}</td>
+        <td class="td-blue">${d0Lbl}</td>
+        <td>${v0Lbl}</td>
+        <td class="${dimCls}">${fmt.pct(v.mediaTrimD4)}</td>
+        <td class="td-blue">${d4Lbl}</td>
+        <td>${v4Lbl}</td>
+        <td><span class="badge ${st.cls}">${st.label}${isMaturando&&v.diaCorrido?' (D'+v.diaCorrido+')':''}</span></td>
+      </tr>`;
+    }).join('');
+
+    pvSetVenc(_pvVenc); // re-apply highlight
+  };
+
+  // ── Month selector ──────────────────────────────────────────────
+  const tabelaFiltroEl = document.getElementById('pvTabelaMesFilter');
+  if (tabelaFiltroEl) {
+    tabelaFiltroEl.innerHTML = '<span class="filter-label" style="font-size:.72rem;opacity:.7">Mês:</span>' +
+      tabelaMeses.map(m =>
+        `<button class="filter-btn ${m === _pvTabelaMes ? 'active' : ''}" style="padding:2px 8px;font-size:.72rem" data-pvtab="${m}" onclick="pvSetTabelaMes('${m}')">${m}</button>`
+      ).join('');
+  }
+
+  _pvRenderTabela(_pvTabelaMes);
+
+  // ── Curva de Recuperação ─────────────────────────────────────────
   const curva = d.curvaRecuperacao;
   const meses  = Object.keys(curva.meses);
   const curvaColors = [COLORS.green, COLORS.blue, COLORS.gold, COLORS.orange];
-  const mesAtivo = new Set(meses); 
+  const mesAtivo = new Set(meses);
   const d0Idx = curva.dias.indexOf(0);
   const d4Idx = curva.dias.indexOf(4);
+  const curvaAtualKey = meses[meses.length - 1];
 
   if (_pvMesSet === null) _pvMesSet = new Set(['trim', meses[meses.length - 1]]);
 
   const filterContainer = document.getElementById('curvaMesesFilter');
   const _pvMesColors = [COLORS.blue, COLORS.green, COLORS.orange, COLORS.aqua];
+
+  // Forward-fill trailing nulls for closed months (not current)
+  function _pvForwardFill(arr, mesKey) {
+    if (mesKey === curvaAtualKey) return arr;
+    const filled = [...arr];
+    let lastVal = null;
+    for (let i = 0; i < filled.length; i++) {
+      if (filled[i] != null) lastVal = filled[i];
+      else if (lastVal != null) filled[i] = lastVal;
+    }
+    return filled;
+  }
 
   function _pvTrimCurve() {
     const mesesTrim = meses.slice(0, -1);
@@ -2548,7 +2616,7 @@ function initPerfVenc() {
     _pvRebuildMesFilter();
 
     let datasets, tituloTexto;
-    const mesAtualKey = meses[meses.length - 1];
+    const mesAtualCurvaKey = meses[meses.length - 1];
 
     if (_pvVenc !== 'todos') {
       const vData = d.vencimentos.find(v => String(v.dia) === _pvVenc);
@@ -2586,14 +2654,14 @@ function initPerfVenc() {
       let colorIdx = 0;
       meses.forEach(m => {
         if (!_pvMesSet.has(m)) return;
-        const color      = _pvMesColors[colorIdx++ % _pvMesColors.length];
-        const baseAtual  = curva.meses[m] || [];
+        const color       = _pvMesColors[colorIdx++ % _pvMesColors.length];
+        const baseAtual   = _pvForwardFill(curva.meses[m] || [], m);
         const baseD0Atual = baseAtual[d0Idx] || 1;
-        const scaleAtual = (m === mesAtualKey && vData && vData.mesD0 != null)
+        const scaleAtual  = (m === mesAtualCurvaKey && vData && vData.mesD0 != null)
           ? vData.mesD0 / baseD0Atual
           : scaleTrim * (baseD0Atual / baseD0Trim);
-        const atualData  = baseAtual.map(v => v != null ? Math.min(100, +(v * scaleAtual).toFixed(2)) : null);
-        const pointAtual = baseAtual.map((_, i) => (i === d0Idx || i === d4Idx) ? 5 : 0);
+        const atualData   = baseAtual.map(v => v != null ? Math.min(100, +(v * scaleAtual).toFixed(2)) : null);
+        const pointAtual  = baseAtual.map((_, i) => (i === d0Idx || i === d4Idx) ? 5 : 0);
         datasets.push({
           label: m,
           data: atualData,
@@ -2627,7 +2695,7 @@ function initPerfVenc() {
       tituloTexto = 'Curva de Recuperação por Dia de Atraso (D-13 a D+20)';
       datasets = meses.filter(m => mesAtivo.has(m)).map((m, i) => ({
         label: m,
-        data: curva.meses[m],
+        data: _pvForwardFill(curva.meses[m], m),
         borderColor: curvaColors[i % curvaColors.length],
         backgroundColor: 'transparent',
         borderWidth: 2,
@@ -2684,7 +2752,7 @@ function initPerfVenc() {
   }
 
   buildCurvaChart();
-  _pvBuildCurva = buildCurvaChart; 
+  _pvBuildCurva = buildCurvaChart;
 
   filterContainer.addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
