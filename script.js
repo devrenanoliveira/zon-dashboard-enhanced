@@ -2862,12 +2862,29 @@ function _meGetPeriodData(i, isGlobal) {
       break;
   }
 
-  const meta    = isGlobal ? m.globalMeta : m.meta[i];
-  const varMeta = (selVal != null && meta > 0) ? (selVal / meta - 1) * 100 : null;
+  // Resolve meta for the selected period (null = no meta defined for that period)
+  const metaHistorico       = m.metaHistorico       || {};
+  const globalMetaHistorico = m.globalMetaHistorico  || {};
+  const mesAntLabel = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim(); // "Jul"
+  const mesCurtoLabel = DATA.meta.mesCurto || 'Ago'; // "Ago"
+
+  const metaByPeriod = {
+    jan: null, fev: null, mar: null, abr: null, mai: null, // no meta before Jun
+    jun:  isGlobal ? (globalMetaHistorico['Jun'] ?? null) : (metaHistorico['Jun']?.[i]   ?? null),
+    jul:  isGlobal ? (globalMetaHistorico['Jul'] ?? null) : (metaHistorico['Jul']?.[i]   ?? null),
+    trim: isGlobal ? (globalMetaHistorico['Jul'] ?? null) : (metaHistorico['Jul']?.[i]   ?? null), // trim ref = most recent closed meta
+    ago:  isGlobal ? m.globalMeta                         : m.meta[i],
+    todos:isGlobal ? m.globalMeta                         : m.meta[i],
+  };
+  const meta = metaByPeriod[_mePeriodo] ?? (isGlobal ? m.globalMeta : m.meta[i]);
+  const hasMeta = metaByPeriod[_mePeriodo] !== null && metaByPeriod[_mePeriodo] !== undefined
+    && !['jan','fev','mar','abr','mai'].includes(_mePeriodo);
+
+  const varMeta = (hasMeta && selVal != null && meta > 0) ? (selVal / meta - 1) * 100 : null;
   const varTrim = (selVal != null && prevTrimAvg != null && prevTrimAvg > 0)
     ? (selVal / prevTrimAvg - 1) * 100 : null;
 
-  return { selVal, varMeta, varTrim, meta };
+  return { selVal, varMeta, varTrim, meta: hasMeta ? meta : null };
 }
 
 // Re-renders META, VAR. S/ META, VAR. TRIM. columns based on current _mePeriodo
@@ -2926,7 +2943,7 @@ function _meRenderRows() {
       ${effCell(trim)}
       ${effCell(agoR)}
       <td class="td-julproj">${agoP.toFixed(2)}%</td>
-      <td>${meta.toFixed(2)}%</td>
+      <td>${meta != null ? meta.toFixed(2) + '%' : '<span class="td-muted">—</span>'}</td>
       ${varCell(varMeta)}
       ${varCell(varTrim)}
     </tr>`;
@@ -2939,7 +2956,7 @@ function _meRenderRows() {
   const gMai = gh['Mai'], gJun = gh['Jun'];
   const gTrim = gAntV != null ? (gMai + gJun + gAntV) / 3 : (gMai + gJun) / 2;
   const gJan  = gh['Jan'], gFev = gh['Fev'], gMar = gh['Mar'], gAbr = gh['Abr'];
-  const { varMeta: gVarMeta, varTrim: gVarTrim } = _meGetPeriodData(0, true);
+  const { varMeta: gVarMeta, varTrim: gVarTrim, meta: gMeta } = _meGetPeriodData(0, true);
 
   rows += `<tr class="row-global">
     <td>Eficiência Global</td>
@@ -2949,7 +2966,7 @@ function _meRenderRows() {
     ${effCell(gTrim)}
     ${effCell(gCurV)}
     <td class="td-julproj">${m.globalProjAtual.toFixed(2)}%</td>
-    <td>${m.globalMeta.toFixed(2)}%</td>
+    <td>${gMeta != null ? gMeta.toFixed(2) + '%' : '<span class="td-muted">—</span>'}</td>
     ${varCell(gVarMeta)}
     ${varCell(gVarTrim)}
   </tr>`;
@@ -3011,14 +3028,30 @@ function _meUpdateDestaque() {
     globalVal = gh[hk] != null ? gh[hk] : 0;
   }
 
-  // Compute ICM per faixa = val / meta * 100
-  const icmFaixas = faixaVals.map((v, i) => m.meta[i] > 0 ? v / m.meta[i] * 100 : 0);
-  const globalIcm = m.globalMeta > 0 ? globalVal / m.globalMeta * 100 : 0;
+  // Resolve meta array for the selected period
+  const metaHistorico       = m.metaHistorico       || {};
+  const globalMetaHistorico = m.globalMetaHistorico  || {};
+  const periodosSemMeta = ['jan','fev','mar','abr','mai'];
+  const hasMeta = !periodosSemMeta.includes(_mePeriodo);
+  const metaKeyMap = { jun:'Jun', jul:'Jul', trim:'Jul', ago: null, todos: null };
+  const metaKey = metaKeyMap[_mePeriodo];
+  const metaArr = hasMeta
+    ? (metaKey ? (metaHistorico[metaKey] || m.meta) : m.meta)
+    : null;
+  const globalMetaVal = hasMeta
+    ? (metaKey ? (globalMetaHistorico[metaKey] ?? m.globalMeta) : m.globalMeta)
+    : null;
 
-  const acimaMeta  = m.faixas.filter((_, i) => icmFaixas[i] >= 100);
-  const abaixoMeta = m.faixas.filter((_, i) => icmFaixas[i] < 100);
-  const melhorIdx  = icmFaixas.indexOf(Math.max(...icmFaixas));
-  const piorIdx    = icmFaixas.indexOf(Math.min(...icmFaixas));
+  // Compute ICM per faixa = val / meta * 100
+  const icmFaixas = hasMeta
+    ? faixaVals.map((v, i) => (metaArr[i] > 0 ? v / metaArr[i] * 100 : 0))
+    : faixaVals.map(() => null);
+  const globalIcm = (hasMeta && globalMetaVal > 0) ? globalVal / globalMetaVal * 100 : null;
+
+  const acimaMeta  = hasMeta ? m.faixas.filter((_, i) => icmFaixas[i] != null && icmFaixas[i] >= 100) : [];
+  const abaixoMeta = hasMeta ? m.faixas.filter((_, i) => icmFaixas[i] != null && icmFaixas[i] < 100)  : [];
+  const melhorIdx  = hasMeta ? icmFaixas.indexOf(Math.max(...icmFaixas.filter(v => v != null))) : -1;
+  const piorIdx    = hasMeta ? icmFaixas.indexOf(Math.min(...icmFaixas.filter(v => v != null))) : -1;
 
   // Tendency vs trimestral (varTrim only makes sense for current/projection period)
   const showTend = cfg.isCurrent || _mePeriodo === 'todos';
@@ -3027,35 +3060,50 @@ function _meUpdateDestaque() {
   const varTrimGlobal = showTend ? m.globalVarTrim : null;
 
   const globalStatusVerb = cfg.isCurrent || _mePeriodo === 'todos' ? 'projetada' : 'registrada';
-  const globalAboveBelow = globalIcm >= 100 ? 'acima' : 'abaixo';
   const globalVarPart = varTrimGlobal != null
     ? `, com variação de <strong>${varTrimGlobal >= 0 ? '+' : ''}${varTrimGlobal.toFixed(2)} p.p.</strong> vs. média trimestral.`
     : '.';
 
-  const globalStatus = `<strong>ICM Global s/ Meta: ${globalIcm.toFixed(1)}%</strong> — eficiência global ${globalStatusVerb} <strong>${globalAboveBelow} da meta</strong> em ${cfg.label}${globalVarPart}`;
+  // Build insight content depending on whether this period has meta
+  let insightLines = '';
+  if (!hasMeta) {
+    insightLines = `
+      <p class="destaque-text">Eficiência global registrada em <strong>${cfg.label}: ${globalVal.toFixed(2)}%</strong>.</p>
+      <p class="destaque-text" style="margin-top:10px;opacity:.7">
+        ⚠️ Metas de eficiência por faixa foram implantadas a partir de Jun/26.
+        Não há comparativo de ICM para o período selecionado.
+      </p>`;
+  } else {
+    const globalAboveBelow = globalIcm >= 100 ? 'acima' : 'abaixo';
+    const globalStatus = `<strong>ICM Global s/ Meta: ${globalIcm.toFixed(1)}%</strong> — eficiência global ${globalStatusVerb} <strong>${globalAboveBelow} da meta</strong> em ${cfg.label}${globalVarPart}`;
+    insightLines = `
+      <p class="destaque-text">${globalStatus}</p>
+      <p class="destaque-text" style="margin-top:10px">
+        <strong>${acimaMeta.length} de ${m.faixas.length} faixas</strong> acima da meta de eficiência:
+        ${acimaMeta.map(f => `<strong>${f.id}</strong>`).join(', ') || '—'}.
+        ${abaixoMeta.length > 0
+          ? `Faixas abaixo da meta: ${abaixoMeta.map(f => `<strong>${f.id}</strong>`).join(', ')} — requerem atenção.`
+          : 'Todas as faixas acima da meta.'}
+      </p>
+      ${melhorIdx >= 0 ? `
+      <p class="destaque-text" style="margin-top:10px">
+        <strong>Melhor ICM s/ Meta:</strong> Faixa <strong>${m.faixas[melhorIdx].id}</strong>
+        com <strong style="color:var(--delta-pos)">${icmFaixas[melhorIdx].toFixed(1)}%</strong>
+        (${faixaVals[melhorIdx].toFixed(2)}% vs. meta ${(metaArr || m.meta)[melhorIdx].toFixed(2)}%).
+        <strong>Pior ICM:</strong> Faixa <strong>${m.faixas[piorIdx].id}</strong>
+        com <strong style="color:var(--delta-neg)">${icmFaixas[piorIdx].toFixed(1)}%</strong>.
+      </p>` : ''}
+      ${melhorando.length > 0 ? `
+      <p class="destaque-text" style="margin-top:10px">
+        Faixas com <strong>tendência de melhora</strong> vs. média trimestral:
+        ${melhorando.map(l => `<strong>${l}</strong>`).join(', ')}.
+        ${piorando.length > 0 ? `Tendência de queda: ${piorando.map(l => `<strong>${l}</strong>`).join(', ')}.` : ''}
+      </p>` : ''}`;
+  }
 
   document.getElementById('me-destaque').innerHTML = `
     <div class="destaque-title">⚡ Insights — ${cfg.label}</div>
-    <p class="destaque-text">${globalStatus}</p>
-    <p class="destaque-text" style="margin-top:10px">
-      <strong>${acimaMeta.length} de ${m.faixas.length} faixas</strong> acima da meta de eficiência:
-      ${acimaMeta.map(f => `<strong>${f.id}</strong>`).join(', ') || '—'}.
-      ${abaixoMeta.length > 0
-        ? `Faixas abaixo da meta: ${abaixoMeta.map(f => `<strong>${f.id}</strong>`).join(', ')} — requerem atenção.`
-        : 'Todas as faixas acima da meta.'}
-    </p>
-    <p class="destaque-text" style="margin-top:10px">
-      <strong>Melhor ICM s/ Meta:</strong> Faixa <strong>${m.faixas[melhorIdx].id}</strong>
-      com <strong style="color:var(--delta-pos)">${icmFaixas[melhorIdx].toFixed(1)}%</strong> (${faixaVals[melhorIdx].toFixed(2)}% vs. meta ${m.meta[melhorIdx].toFixed(2)}%).
-      <strong>Pior ICM:</strong> Faixa <strong>${m.faixas[piorIdx].id}</strong>
-      com <strong style="color:var(--delta-neg)">${icmFaixas[piorIdx].toFixed(1)}%</strong>.
-    </p>
-    ${melhorando.length > 0 ? `
-    <p class="destaque-text" style="margin-top:10px">
-      Faixas com <strong>tendência de melhora</strong> vs. média trimestral:
-      ${melhorando.map(l => `<strong>${l}</strong>`).join(', ')}.
-      ${piorando.length > 0 ? `Tendência de queda: ${piorando.map(l => `<strong>${l}</strong>`).join(', ')}.` : ''}
-    </p>` : ''}
+    ${insightLines}
   `;
 }
 
