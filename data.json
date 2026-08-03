@@ -1,10 +1,10 @@
 {
   "meta": {
     "lastUpdated": "03/08/2026, 09:05",
-    "mesReferencia": "Julho 2026",
+    "mesReferencia": "Agosto 2026",
     "mesAnterior": "Jun/26",
     "mediaReferencia": "Abr–Jun 2026",
-    "mesCurto": "Jul"
+    "mesCurto": "Ago"
   },
   "resultadoGeral": {
     "metaMensal": 6256206.42,
@@ -69,7 +69,7 @@
         "diasUteis": 21
       },
       {
-        "mes": "Jul/26*",
+        "mes": "Jul/26",
         "meta": 6256206.42,
         "recuperado": 7029390.56,
         "metaPre": 5820124.91,
@@ -77,6 +77,14 @@
         "metaPos": 436081.51,
         "recupPos": 434138.35,
         "diasUteis": 23
+      },
+      {
+        "mes": "Ago/26*",
+        "recuperado": 0,
+        "meta": 0,
+        "recupPre": 0,
+        "recupPos": 0,
+        "diasUteis": 21
       }
     ],
     "eficAtualMes": 6.41,
@@ -134,12 +142,20 @@
         "icmEficProj": 86.68
       },
       {
-        "mes": "Jul/26*",
+        "mes": "Jul/26",
         "eficAtual": 6.41,
         "eficProj": 6.41,
         "metaEfic": 5.69,
         "icmEficAtual": 112.65,
         "icmEficProj": 112.65
+      },
+      {
+        "mes": "Ago/26*",
+        "eficAtual": 0,
+        "eficProj": 0,
+        "metaEfic": 0,
+        "icmEficAtual": 0,
+        "icmEficProj": 0
       }
     ],
     "diarioAtual": 464362
@@ -272,7 +288,7 @@
           }
         ]
       },
-      "Jul/26*": {
+      "Jul/26": {
         "nome": "Julho 2026",
         "totalDUs": 31,
         "emAndamento": true,
@@ -402,106 +418,19 @@
             "val": 69695.35
           }
         ]
+      },
+      "Ago/26*": {
+        "nome": "Agosto 2026",
+        "dados": [],
+        "totalDUs": 21,
+        "emAndamento": true
       }
     }
   },
   "recuperacaoPorDU": {
     "totalDUs": 23,
     "metaMensal": 6256206,
-    "mesAtual": [
-      {
-        "du": 1,
-        "val": 359464
-      },
-      {
-        "du": 2,
-        "val": 224507
-      },
-      {
-        "du": 3,
-        "val": 277176
-      },
-      {
-        "du": 4,
-        "val": 566915
-      },
-      {
-        "du": 5,
-        "val": 267560
-      },
-      {
-        "du": 6,
-        "val": 210889
-      },
-      {
-        "du": 7,
-        "val": 109274
-      },
-      {
-        "du": 8,
-        "val": 509843
-      },
-      {
-        "du": 9,
-        "val": 162271
-      },
-      {
-        "du": 10,
-        "val": 125356
-      },
-      {
-        "du": 11,
-        "val": 534363
-      },
-      {
-        "du": 12,
-        "val": 311201
-      },
-      {
-        "du": 13,
-        "val": 471009
-      },
-      {
-        "du": 14,
-        "val": 482290
-      },
-      {
-        "du": 15,
-        "val": 248170
-      },
-      {
-        "du": 16,
-        "val": 213012
-      },
-      {
-        "du": 17,
-        "val": 173489
-      },
-      {
-        "du": 18,
-        "val": 452815
-      },
-      {
-        "du": 19,
-        "val": 215717
-      },
-      {
-        "du": 20,
-        "val": 165914
-      },
-      {
-        "du": 21,
-        "val": 160311
-      },
-      {
-        "du": 22,
-        "val": 323482
-      },
-      {
-        "du": 23,
-        "val": 464362
-      }
-    ],
+    "mesAtual": [],
     "mesAnterior": [
       {
         "du": 1,
@@ -636,9 +565,14 @@
         "pos": 72236355
       },
       {
-        "mes": "Jul*",
+        "mes": "Jul",
         "pre": 33843001.37,
         "pos": 76326681.08
+      },
+      {
+        "mes": "Ago*",
+        "pre": 0,
+        "pos": 0
       }
     ],
     "fases": [
@@ -1172,6 +1106,17 @@
         0.88,
         0.4,
         0.35
+      ],
+      "Ago": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
       ]
     },
     "meta": [
@@ -1214,7 +1159,8 @@
       "Abr": 6.77,
       "Mai": 6.95,
       "Jun": 6.05,
-      "Jul": 6.41
+      "Jul": 6.41,
+      "Ago": 0
     },
     "globalMeta": 5.69,
     "globalVarTrim": -2.75,
