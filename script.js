@@ -63,6 +63,17 @@ const COLORS = {
   gridline: '#e1e0d9'
 };
 
+// Paleta fixa por mês (usado nos gráficos comparativos)
+const _MONTH_COLORS = {
+  'Jan':'#6366f1','Fev':'#ec4899','Mar':'#f97316','Abr':'#eab308',
+  'Mai':'#22c55e','Jun':'#14b8a6','Jul':'#3b82f6','Ago':'#a855f7',
+  'Set':'#ef4444','Out':'#78716c','Nov':'#0ea5e9','Dez':'#d97706'
+};
+function _monthColor(mesStr) {
+  const k = (mesStr || '').replace('*','').split('/')[0].trim().substring(0, 3);
+  return _MONTH_COLORS[k] || '#3b82f6';
+}
+
 function baseOptions(yLabel = '') {
   return {
     responsive: true,
@@ -670,10 +681,10 @@ function _pduIsWeekday(mesNome, dia) {
   return d >= 1 && d <= 5;
 }
 
-let _pduMes     = null;
-let _pduCompMes = null;
+let _pduMes      = null;
+let _pduCompMes  = null;
 let _pduChartMes = null;
-let _pduChartCmp = null;
+let _pduChartCmps = new Set(); // multi-select de meses comparativos no gráfico
 let _pduChart1   = null;
 let _pduChart2   = null;
 
@@ -721,11 +732,13 @@ function pduChartSetMes(mes) {
   _pduUpdateChart();
 }
 
-function pduChartSetComp(mes) {
-  _pduChartCmp = (mes === 'none') ? null : mes;
-  document.querySelectorAll('[data-pducc]').forEach(btn =>
-    btn.classList.toggle('active', btn.dataset.pducc === mes)
-  );
+function pduChartToggleComp(mes) {
+  if (_pduChartCmps.has(mes)) {
+    _pduChartCmps.delete(mes);
+  } else {
+    _pduChartCmps.add(mes);
+  }
+  _pduBuildChartCompFilter();
   _pduUpdateChart();
 }
 
@@ -733,26 +746,26 @@ function _pduBuildChartCompFilter() {
   const container = document.getElementById('pdu-chart-comp-filtros');
   if (!container) return;
   const available = Object.keys(DATA.producaoPorDU.meses).filter(m => m !== _pduChartMes);
-  if (available.length === 0) { container.style.display = 'none'; _pduChartCmp = null; return; }
+  if (available.length === 0) { container.style.display = 'none'; _pduChartCmps.clear(); return; }
   container.style.display = '';
-  if (!_pduChartCmp || !available.includes(_pduChartCmp)) {
-    _pduChartCmp = available[available.length - 1];
-  }
-  const opts = ['none', ...available];
+  // Remove seleções que não existem mais
+  [..._pduChartCmps].forEach(m => { if (!available.includes(m)) _pduChartCmps.delete(m); });
   container.innerHTML = '<span class="filter-label">Comparar com:</span>' +
-    opts.map(m => {
-      const isActive = (m === 'none' && !_pduChartCmp) || (m !== 'none' && m === _pduChartCmp);
-      const label = m === 'none' ? 'Nenhum' : m.replace('*', '');
-      return `<button class="filter-btn${isActive ? ' active' : ''}" data-pducc="${m}" onclick="pduChartSetComp('${m}')">${label}</button>`;
+    available.map(m => {
+      const isActive = _pduChartCmps.has(m);
+      const label = m.replace('*', '');
+      return `<button class="filter-btn${isActive ? ' active' : ''}" onclick="pduChartToggleComp('${m}')">${label}</button>`;
     }).join('');
 }
 
 function _pduUpdateChart() {
-  const meses    = DATA.producaoPorDU.meses;
-  const entry    = meses[_pduChartMes];
+  const meses = DATA.producaoPorDU.meses;
+  const entry = meses[_pduChartMes];
   if (!entry) return;
-  const compEntry = _pduChartCmp ? meses[_pduChartCmp] : null;
-  _pduRenderCharts(entry.dados, compEntry ? compEntry.dados : null, entry.nome, compEntry ? compEntry.nome : null);
+  const compEntries = [..._pduChartCmps]
+    .filter(m => meses[m])
+    .map(m => ({ key: m, dados: meses[m].dados, nome: meses[m].nome }));
+  _pduRenderCharts(entry.dados, compEntries, entry.nome);
 }
 
 function _pduUpdateMes() {
@@ -824,7 +837,8 @@ function _pduUpdateMes() {
     detail.style.display = 'none';
     note.style.display   = '';
     document.getElementById('pdu-comp-filtros').style.display = 'none';
-    document.getElementById('pdu-chart-comp-filtros').style.display = 'none';
+    const pduCCont = document.getElementById('pdu-chart-comp-filtros');
+    if (pduCCont) pduCCont.style.display = 'none';
     const mesesComDU = Object.keys(DATA.producaoPorDU.meses).map(m => m.replace('*','')).join(' e ');
     note.innerHTML = `<strong>ℹ️ Detalhamento por DU disponível apenas para: ${mesesComDU}.</strong><br>
       Selecione um desses meses para ver a tabela de produção por DU.`;
@@ -902,54 +916,76 @@ function _pduRenderTabela(serie, serieRef, totalDUs, mesNome, mesRefNome, aberta
   `;
 }
 
-function _pduRenderCharts(serie, serieRef, mesNome, mesRefNome) {
+function _pduRenderCharts(serie, compEntries, mesNome) {
+  // compEntries: array de { key, dados, nome }
   if (_pduChart1) { _pduChart1.destroy(); _pduChart1 = null; }
   if (_pduChart2) { _pduChart2.destroy(); _pduChart2 = null; }
 
-  const allDUs = Array.from({length: Math.max(serie.length, serieRef ? serieRef.length : 0)}, (_,i) => i+1);
+  const maxLen = Math.max(serie.length, ...compEntries.map(c => c.dados.length));
+  const allDUs = Array.from({length: maxLen}, (_,i) => i+1);
   const brlTick = { callback: v => fmt.brl(v), color:'#898781', font:{size:10} };
+  const mainColor = _monthColor(_pduChartMes);
 
+  // ── Gráfico de barras: Produção Diária ──
   const ds1 = [
-    { label: mesNome, data: allDUs.map(du => { const f=serie.find(x=>x.du===du); return f?f.val:null; }),
-      backgroundColor: COLORS.blue, borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8 }
+    { label: mesNome,
+      data: allDUs.map(du => { const f=serie.find(x=>x.du===du); return f?f.val:null; }),
+      backgroundColor: mainColor, borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8 }
   ];
-  if (serieRef && mesRefNome) ds1.push({
-    label: mesRefNome, data: allDUs.map(du => { const f=serieRef.find(x=>x.du===du); return f?f.val:null; }),
-    backgroundColor: COLORS.blue+'45', borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8
+  compEntries.forEach(c => {
+    const color = _monthColor(c.key);
+    ds1.push({
+      label: c.nome,
+      data: allDUs.map(du => { const f=c.dados.find(x=>x.du===du); return f?f.val:null; }),
+      backgroundColor: color + 'aa', borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8
+    });
   });
 
   document.getElementById('pdu-chart-bar-title').textContent = 'Produção Diária — Comparativo Mensal';
-
   _pduChart1 = new Chart(document.getElementById('chartProducao'), {
     type: 'bar',
     data: { labels: allDUs.map(du=>'Dia '+du), datasets: ds1 },
     options: { ...baseOptions(), scales: { ...baseOptions().scales, y: { ...baseOptions().scales.y, ticks: brlTick } } }
   });
-  const legendItems = [{ type:'bar', color:COLORS.blue, label:mesNome }];
-  if (serieRef && mesRefNome) legendItems.push({ type:'bar', color:COLORS.blue+'45', label:mesRefNome });
+
+  const legendItems = [{ type:'dot', color: mainColor, label: mesNome }];
+  compEntries.forEach(c => legendItems.push({ type:'dot', color: _monthColor(c.key), label: c.nome }));
   makeLegend('legendProducao', legendItems);
 
+  // ── Gráfico de linha: Produção Acumulada ──
   document.getElementById('pdu-chart-acum-title').textContent = 'Produção Acumulada — Comparativo Mensal';
 
-  const acumSerie = [], acumRef2 = [];
-  let sa = 0, sb = 0;
+  let sa = 0;
+  const acumSerie = [];
   for (const du of allDUs) {
-    const fa = serie.find(x=>x.du===du);             if(fa) sa+=fa.val;
-    const fb = serieRef ? serieRef.find(x=>x.du===du) : null; if(fb) sb+=fb.val;
+    const fa = serie.find(x=>x.du===du); if(fa) sa+=fa.val;
     acumSerie.push(fa?sa:null);
-    acumRef2.push(fb?sb:null);
   }
   const ds2 = [
-    { label:mesNome, data:acumSerie, borderColor:COLORS.blue, borderWidth:2, pointRadius:3, fill:false, tension:0.3, spanGaps:false }
+    { label:mesNome, data:acumSerie, borderColor:mainColor, borderWidth:2.5, pointRadius:3, fill:false, tension:0.3, spanGaps:false }
   ];
-  if (serieRef && mesRefNome) ds2.push({
-    label:mesRefNome, data:acumRef2, borderColor:COLORS.green, borderWidth:2, pointRadius:3, fill:false, tension:0.3, borderDash:[5,4], spanGaps:false
+  compEntries.forEach((c, i) => {
+    const color = _monthColor(c.key);
+    let sc = 0;
+    const acumC = [];
+    for (const du of allDUs) {
+      const fc = c.dados.find(x=>x.du===du); if(fc) sc+=fc.val;
+      acumC.push(fc?sc:null);
+    }
+    ds2.push({
+      label: c.nome, data: acumC, borderColor: color, borderWidth:2,
+      pointRadius:3, fill:false, tension:0.3, borderDash:[5,4], spanGaps:false
+    });
   });
   _pduChart2 = new Chart(document.getElementById('chartProducaoAcum'), {
     type:'line',
     data:{ labels:allDUs.map(du=>'Dia '+du), datasets:ds2 },
     options:{ ...baseOptions(), scales:{ ...baseOptions().scales, y:{ ...baseOptions().scales.y, ticks:brlTick } } }
   });
+  makeLegend('legendProducaoAcum', [
+    { type:'line', color: mainColor, label: mesNome },
+    ...compEntries.map(c => ({ type:'line', color: _monthColor(c.key), label: c.nome, dashed: true }))
+  ]);
 }
 
 function initProducaoDU() {
@@ -960,7 +996,7 @@ function initProducaoDU() {
   _pduMes      = ultComDU;
   _pduCompMes  = null;
   _pduChartMes = ultComDU;
-  _pduChartCmp = null;
+  _pduChartCmps = new Set();
 
   document.getElementById('pdu-mes-filtros').innerHTML =
     '<span class="filter-label">Mês:</span>' +
@@ -987,11 +1023,11 @@ function initProducaoDU() {
 // ══════════════════════════════════════════════════════════════
 // TAB 3 — RECUPERAÇÃO POR DU
 // ══════════════════════════════════════════════════════════════
-let _rduMes     = null;
-let _rduCompMes = null;
-let _rduDuData  = {};
-let _rduChart1  = null;
-let _rduChart2  = null;
+let _rduMes       = null;
+let _rduCompMeses = new Set(); // multi-select de meses comparativos
+let _rduDuData    = {};
+let _rduChart1    = null;
+let _rduChart2    = null;
 
 function rduSetMes(mes) {
   _rduMes = mes;
@@ -1001,11 +1037,13 @@ function rduSetMes(mes) {
   _rduUpdateMes();
 }
 
-function rduSetComp(mes) {
-  _rduCompMes = (mes === 'none') ? null : mes;
-  document.querySelectorAll('[data-rduc]').forEach(btn =>
-    btn.classList.toggle('active', btn.dataset.rduc === mes)
-  );
+function rduToggleComp(mes) {
+  if (_rduCompMeses.has(mes)) {
+    _rduCompMeses.delete(mes);
+  } else {
+    _rduCompMeses.add(mes);
+  }
+  _rduBuildCompFilter();
   const d = DATA.recuperacaoPorDU;
   const isAtual = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
   const serie   = isAtual ? d.mesAtual : d.mesAnterior;
@@ -1019,19 +1057,17 @@ function _rduBuildCompFilter() {
   const available = Object.keys(_rduDuData).filter(m => m !== _rduMes);
   if (available.length === 0) {
     container.style.display = 'none';
-    _rduCompMes = null;
+    _rduCompMeses.clear();
     return;
   }
   container.style.display = '';
-  if (!_rduCompMes || !available.includes(_rduCompMes)) {
-    _rduCompMes = available[0];
-  }
-  const opts = ['none', ...available];
+  // Remove entradas que não existem mais
+  [..._rduCompMeses].forEach(m => { if (!available.includes(m)) _rduCompMeses.delete(m); });
   container.innerHTML = '<span class="filter-label">Comparar com:</span>' +
-    opts.map(m => {
-      const isActive = (m === 'none' && !_rduCompMes) || (m !== 'none' && m === _rduCompMes);
-      const label = m === 'none' ? 'Nenhum' : m.replace('*', '');
-      return `<button class="filter-btn${isActive ? ' active' : ''}" data-rduc="${m}" onclick="rduSetComp('${m}')">${label}</button>`;
+    available.map(m => {
+      const isActive = _rduCompMeses.has(m);
+      const label = m.replace('*', '');
+      return `<button class="filter-btn${isActive ? ' active' : ''}" onclick="rduToggleComp('${m}')">${label}</button>`;
     }).join('');
 }
 
@@ -1224,81 +1260,101 @@ function _rduRenderCharts(serie, mesNome) {
   if (_rduChart2) { _rduChart2.destroy(); _rduChart2 = null; }
 
   const d = DATA.recuperacaoPorDU;
-  const allDUs = Array.from({length: d.totalDUs}, (_, i) => i + 1);
-  const serieRef   = _rduCompMes ? _rduDuData[_rduCompMes] : null;
-  const mesRefNome = _rduCompMes ? _rduCompMes.replace('*', '') : null;
+  const isAtual = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
+  const totalDUs = isAtual ? d.totalDUs : (serie ? serie.length : d.totalDUs);
+  const allDUs = Array.from({length: totalDUs}, (_, i) => i + 1);
 
   const mesNomeShort = mesNome.replace(' 2026','').replace(' 2025','');
-  const datasets1 = [
-    { label: mesNomeShort, data: allDUs.map(du => { const f=serie.find(x=>x.du===du); return f?f.val:null; }),
-      backgroundColor: COLORS.blue, borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8 }
-  ];
-  if (serieRef && mesRefNome) {
-    datasets1.push({
-      label: mesRefNome,
-      data: allDUs.map(du => { const f=serieRef.find(x=>x.du===du); return f?f.val:null; }),
-      backgroundColor: COLORS.blue+'45', borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8
-    });
-  }
+  const mainColor = _monthColor(_rduMes);
 
-  const barTitle = serieRef
-    ? `Recuperação por DU — ${mesNomeShort} vs. ${mesRefNome}`
-    : `Recuperação por DU — ${mesNomeShort}`;
+  // Comparações selecionadas
+  const compEntries = [..._rduCompMeses]
+    .filter(m => _rduDuData[m] && m !== _rduMes)
+    .map(m => ({ key: m, dados: _rduDuData[m], nome: m.replace('*','') }));
+
+  const brlTick = { callback: v=>fmt.brl(v), color:'#898781', font:{size:10} };
+  const tooltipCb = { callbacks: { label: ctx => ctx.parsed.y != null ? `${ctx.dataset.label}: ${fmt.brl(ctx.parsed.y)}` : null } };
+
+  // ── Barras: Recuperação por DU ──
+  const datasets1 = [
+    { label: mesNomeShort,
+      data: allDUs.map(du => { const f=serie ? serie.find(x=>x.du===du) : null; return f?f.val:null; }),
+      backgroundColor: mainColor, borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8 }
+  ];
+  compEntries.forEach(c => {
+    const color = _monthColor(c.key);
+    datasets1.push({
+      label: c.nome,
+      data: allDUs.map(du => { const f=c.dados.find(x=>x.du===du); return f?f.val:null; }),
+      backgroundColor: color + 'aa', borderRadius:3, borderSkipped:'bottom', barPercentage:0.75, categoryPercentage:0.8
+    });
+  });
+
   const barTitleEl = document.getElementById('rdu-chart-bar-title');
-  if (barTitleEl) barTitleEl.textContent = barTitle;
+  if (barTitleEl) barTitleEl.textContent = 'Recuperação por DU — Comparativo Mensal';
 
   _rduChart1 = new Chart(document.getElementById('chartRecupDU'), {
     type: 'bar',
     data: { labels: allDUs.map(du => 'DU '+du), datasets: datasets1 },
     options: {
       ...baseOptions(),
-      plugins: { ...baseOptions().plugins, tooltip: { ...baseOptions().plugins.tooltip, callbacks: { label: ctx => ctx.parsed.y != null ? `${ctx.dataset.label}: ${fmt.brl(ctx.parsed.y)}` : null } } },
-      scales: { ...baseOptions().scales, y: { ...baseOptions().scales.y, ticks:{ callback: v=>fmt.brl(v), color:'#898781', font:{size:10} } } }
+      plugins: { ...baseOptions().plugins, tooltip: { ...baseOptions().plugins.tooltip, ...tooltipCb } },
+      scales: { ...baseOptions().scales, y: { ...baseOptions().scales.y, ticks: brlTick } }
     }
   });
 
-  const legendItems = [{ type:'bar', color:COLORS.blue, label: mesNomeShort }];
-  if (serieRef && mesRefNome) legendItems.push({ type:'bar', color:COLORS.blue+'45', label: mesRefNome });
+  const legendItems = [{ type:'dot', color: mainColor, label: mesNomeShort }];
+  compEntries.forEach(c => legendItems.push({ type:'dot', color: _monthColor(c.key), label: c.nome }));
   makeLegend('legendRecupDU', legendItems);
 
-  document.getElementById('rdu-chart-acum-title').textContent =
-    serieRef ? `Recuperação Acumulada — ${mesNomeShort} vs. ${mesRefNome}` : `Recuperação Acumulada — ${mesNomeShort}`;
+  // ── Linha: Recuperação Acumulada ──
+  document.getElementById('rdu-chart-acum-title').textContent = 'Recuperação Acumulada — Comparativo Mensal';
 
-  const acumSerie = [], acumRef = [];
-  let sa = 0, sb = 0;
+  let sa = 0;
+  const acumSerie = [];
   for (const du of allDUs) {
-    const fa = serie.find(x=>x.du===du);
-    const fb = serieRef ? serieRef.find(x=>x.du===du) : null;
+    const fa = serie ? serie.find(x=>x.du===du) : null;
     if (fa) sa += fa.val;
-    if (fb) sb += fb.val;
     acumSerie.push(fa ? sa : null);
-    acumRef.push(fb ? sb : null);
   }
   const datasets2 = [
-    { label: mesNomeShort, data: acumSerie, borderColor: COLORS.blue, borderWidth:2, pointRadius:3, fill:false, tension:0.3, spanGaps:false }
+    { label: mesNomeShort, data: acumSerie, borderColor: mainColor, borderWidth:2.5, pointRadius:3, fill:false, tension:0.3, spanGaps:false }
   ];
-  if (serieRef && mesRefNome) {
-    datasets2.push({ label: mesRefNome, data: acumRef, borderColor: COLORS.green, borderWidth:2, pointRadius:3, fill:false, tension:0.3, borderDash:[5,4], spanGaps:false });
-  }
+  compEntries.forEach(c => {
+    const color = _monthColor(c.key);
+    let sc = 0;
+    const acumC = [];
+    for (const du of allDUs) {
+      const fc = c.dados.find(x=>x.du===du); if(fc) sc+=fc.val;
+      acumC.push(fc?sc:null);
+    }
+    datasets2.push({ label: c.nome, data: acumC, borderColor: color, borderWidth:2, pointRadius:3, fill:false, tension:0.3, borderDash:[5,4], spanGaps:false });
+  });
+
   _rduChart2 = new Chart(document.getElementById('chartRecupAcum'), {
     type: 'line',
     data: { labels: allDUs.map(du=>'DU '+du), datasets: datasets2 },
     options: {
       ...baseOptions(),
-      plugins: { ...baseOptions().plugins, tooltip: { ...baseOptions().plugins.tooltip, callbacks: { label: ctx => ctx.parsed.y != null ? `${ctx.dataset.label}: ${fmt.brl(ctx.parsed.y)}` : null } } },
-      scales: { ...baseOptions().scales, y: { ...baseOptions().scales.y, ticks:{ callback: v=>fmt.brl(v), color:'#898781', font:{size:10} } } }
+      plugins: { ...baseOptions().plugins, tooltip: { ...baseOptions().plugins.tooltip, ...tooltipCb } },
+      scales: { ...baseOptions().scales, y: { ...baseOptions().scales.y, ticks: brlTick } }
     }
   });
+  makeLegend('legendRecupAcum', [
+    { type:'line', color: mainColor, label: mesNomeShort },
+    ...compEntries.map(c => ({ type:'line', color: _monthColor(c.key), label: c.nome, dashed: true }))
+  ]);
 }
 
 function initRecupDU() {
   const d    = DATA.recuperacaoPorDU;
   const hist = DATA.resultadoGeral.historico;
 
-  _rduDuData = {};
+  _rduDuData    = {};
+  _rduCompMeses = new Set();
   const parcialH   = hist.find(h => h.mes.includes('*'));
   const anteriorH  = hist.length >= 2 ? hist[hist.length - 2] : null;
-  if (parcialH  && d.mesAtual)   _rduDuData[parcialH.mes]   = d.mesAtual;
+  if (parcialH  && d.mesAtual)    _rduDuData[parcialH.mes]   = d.mesAtual;
   if (anteriorH && d.mesAnterior) _rduDuData[anteriorH.mes]  = d.mesAnterior;
 
   const mesesRDU = hist.slice(-5);
