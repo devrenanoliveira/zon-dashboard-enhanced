@@ -1354,8 +1354,14 @@ function initRecupDU() {
   _rduCompMeses = new Set();
   const parcialH   = hist.find(h => h.mes.includes('*'));
   const anteriorH  = hist.length >= 2 ? hist[hist.length - 2] : null;
-  if (parcialH  && d.mesAtual)    _rduDuData[parcialH.mes]   = d.mesAtual;
-  if (anteriorH && d.mesAnterior) _rduDuData[anteriorH.mes]  = d.mesAnterior;
+  if (parcialH  && d.mesAtual   && d.mesAtual.length   > 0) _rduDuData[parcialH.mes]  = d.mesAtual;
+  if (anteriorH && d.mesAnterior && d.mesAnterior.length > 0) _rduDuData[anteriorH.mes] = d.mesAnterior;
+  // Meses históricos adicionais com label correto
+  if (d.historicoDU) {
+    Object.entries(d.historicoDU).forEach(([mes, dados]) => {
+      if (dados && dados.length > 0 && !_rduDuData[mes]) _rduDuData[mes] = dados;
+    });
+  }
 
   const mesesRDU = hist.slice(-5);
   _rduMes = mesesRDU[mesesRDU.length - 1].mes; 
