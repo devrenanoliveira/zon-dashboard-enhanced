@@ -2615,7 +2615,7 @@ function meSetPeriodo(p) {
   _meAplicarFoco();
 }
 
-const _ME_COL = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, trim: 7, jul: 8 };
+const _ME_COL = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, jul: 7, trim: 8, ago: 9 };
 
 function _meAplicarFoco() {
   const colIdx = _ME_COL[_mePeriodo]; 
@@ -2653,10 +2653,11 @@ function initMatrizEficiencia() {
     const abr     = m.historico["Abr"][i];
     const mai     = m.historico["Mai"][i];
     const jun     = m.historico["Jun"][i];
-    const mesCurto = DATA.meta.mesCurto || 'Jul';
-    const julReal = m.historico[mesCurto] ? m.historico[mesCurto][i] : null;
-    const trim    = (abr + mai + jun) / 3;
-    const jul     = m.projAtual[i];
+    const julHist = m.historico["Jul"] ? m.historico["Jul"][i] : null;
+    const mesCurto = DATA.meta.mesCurto || 'Ago';
+    const agoReal = m.historico[mesCurto] ? m.historico[mesCurto][i] : null;
+    const trim    = (julHist !== null) ? (mai + jun + julHist) / 3 : (abr + mai + jun) / 3;
+    const agoProj = m.projAtual[i];
     const meta    = m.meta[i];
     const vTrim   = m.varTrim[i];
 
@@ -2668,20 +2669,22 @@ function initMatrizEficiencia() {
       ${effCell(abr)}
       ${effCell(mai)}
       ${effCell(jun)}
+      ${effCell(julHist)}
       ${effCell(trim)}
-      ${effCell(julReal)}
-      <td class="td-julproj">${jul.toFixed(2)}%</td>
+      ${effCell(agoReal)}
+      <td class="td-julproj">${agoProj.toFixed(2)}%</td>
       <td>${meta.toFixed(2)}%</td>
-      ${varMetaCell(jul, meta)}
+      ${varMetaCell(agoProj, meta)}
       ${varTrimCell(vTrim)}
     </tr>`;
   });
 
   const gh    = m.globalHistorico;
-  const _mc   = DATA.meta.mesCurto || 'Jul';
+  const _mc   = DATA.meta.mesCurto || 'Ago';
   const gJan  = gh["Jan"], gFev = gh["Fev"], gMar = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"];
+  const gJul  = gh["Jul"] ?? null;
   const gAtualReal = gh[_mc] ?? null;
-  const gTrim = (gAbr + gMai + gJun) / 3;
+  const gTrim = (gJul !== null) ? (gMai + gJun + gJul) / 3 : (gAbr + gMai + gJun) / 3;
 
   rows += `<tr class="row-global">
     <td>Eficiência Global</td>
@@ -2691,6 +2694,7 @@ function initMatrizEficiencia() {
     ${effCell(gAbr)}
     ${effCell(gMai)}
     ${effCell(gJun)}
+    ${effCell(gJul)}
     ${effCell(gTrim)}
     ${effCell(gAtualReal)}
     <td class="td-julproj">${m.globalProjAtual.toFixed(2)}%</td>
