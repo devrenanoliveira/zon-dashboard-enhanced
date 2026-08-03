@@ -1162,6 +1162,7 @@ function _rduUpdateMes() {
       `${mesLabel} — resultado total do mês encerrado`;
     const icm   = h.meta > 0 ? h.recuperado / h.meta * 100 : 0;
     const delta = h.recuperado - h.meta;
+    const icmCl = icm >= 100 ? 'green' : icm >= 85 ? 'gold' : 'red';
     document.getElementById('rdu-kpis').innerHTML = `
       <div class="kpi-card">
         <div class="kpi-label">Meta do Mês</div>
@@ -1174,12 +1175,12 @@ function _rduUpdateMes() {
         <div class="kpi-sub">${fmt.pct(icm)} da meta mensal</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(icm,100)}%"></div></div>
       </div>
-      <div class="kpi-card ${icm>=100?'green':'gold'}">
+      <div class="kpi-card ${icmCl}">
         <div class="kpi-label">ICM Realizado</div>
         <div class="kpi-value">${fmt.pct(icm)}</div>
         <div class="kpi-sub">${icm >= 100 ? 'Acima da meta' : 'Abaixo da meta'}</div>
       </div>
-      <div class="kpi-card ${delta>=0?'blue':''}">
+      <div class="kpi-card ${icmCl}">
         <div class="kpi-label">Δ s/ Meta</div>
         <div class="kpi-value" style="color:${delta>=0?'var(--delta-pos)':'var(--delta-neg)'}">${delta>=0?'+':''}${fmt.brl(delta)}</div>
         <div class="kpi-sub">Mês encerrado</div>
@@ -1365,11 +1366,21 @@ function initRecupDU() {
   const parcialH = hist.find(h => h.mes.includes('*'));
   if (parcialH && d.mesAtual && d.mesAtual.length > 0) _rduDuData[parcialH.mes] = d.mesAtual;
 
-  // 2. Histórico com breakdown por DU (ex: Jun/26)
+  // 2. Histórico com breakdown por DU (campo historicoDU, quando presente)
   if (d.historicoDU) {
     Object.entries(d.historicoDU).forEach(([mes, dados]) => {
       if (dados && dados.length > 0 && !_rduDuData[mes]) _rduDuData[mes] = dados;
     });
+  }
+
+  // 3. Fallback: mesAnterior do data.json corresponde a 2 meses atrás (Jun quando atual=Ago)
+  //    O Actions sempre popula mesAnterior com os dados DU do mês anterior ao fechado.
+  if (d.mesAnterior && d.mesAnterior.length > 0) {
+    // hist.length-1 = atual (Ago*), length-2 = anterior fechado (Jul), length-3 = 2 meses atrás (Jun)
+    const duasAtrasH = hist.length >= 3 ? hist[hist.length - 3] : null;
+    if (duasAtrasH && !_rduDuData[duasAtrasH.mes]) {
+      _rduDuData[duasAtrasH.mes] = d.mesAnterior;
+    }
   }
 
   // 3. Seletor de meses: apenas meses com DU data OU meses fechados sem DU (para ver KPIs agregados)
