@@ -2809,7 +2809,153 @@ function meSetPeriodo(p) {
     btn.classList.toggle('active', btn.dataset.me === p);
   });
   _meAplicarFoco();
+  _meRenderRows();
   _meUpdateDestaque();
+}
+
+// Computes {selVal, prevTrimAvg} for a given faixa index based on current _mePeriodo
+function _meGetPeriodData(i, isGlobal) {
+  const m    = DATA.matrizEficiencia;
+  const hist = isGlobal ? null : m.historico;
+  const gh   = m.globalHistorico;
+  const mesAntKey   = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim();
+  const mesCurtoKey = DATA.meta.mesCurto || 'Ago';
+
+  function hv(key) {
+    if (isGlobal) return gh[key] ?? null;
+    const arr = hist[key];
+    return (arr && arr[i] != null) ? arr[i] : null;
+  }
+
+  const Jan = hv('Jan'), Fev = hv('Fev'), Mar = hv('Mar');
+  const Abr = hv('Abr'), Mai = hv('Mai'), Jun = hv('Jun');
+  const AntV = hv(mesAntKey);   // e.g. Jul
+  const CurV = hv(mesCurtoKey) ?? 0; // e.g. Ago real (partial)
+  const agoProj = isGlobal ? m.globalProjAtual : m.projAtual[i];
+
+  function avg3(...xs) {
+    const v = xs.filter(x => x != null && x > 0);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  }
+
+  let selVal, prevTrimAvg;
+  switch (_mePeriodo) {
+    case 'jan':  selVal = Jan;    prevTrimAvg = null;              break;
+    case 'fev':  selVal = Fev;    prevTrimAvg = avg3(Jan);         break;
+    case 'mar':  selVal = Mar;    prevTrimAvg = avg3(Jan, Fev);    break;
+    case 'abr':  selVal = Abr;    prevTrimAvg = avg3(Jan,Fev,Mar); break;
+    case 'mai':  selVal = Mai;    prevTrimAvg = avg3(Fev,Mar,Abr); break;
+    case 'jun':  selVal = Jun;    prevTrimAvg = avg3(Mar,Abr,Mai); break;
+    case 'jul':  selVal = AntV;   prevTrimAvg = avg3(Abr,Mai,Jun); break;
+    case 'trim':
+      selVal = avg3(Mai, Jun, AntV);
+      prevTrimAvg = avg3(Fev, Mar, Abr);
+      break;
+    case 'ago':
+      selVal = CurV;
+      prevTrimAvg = avg3(Mai, Jun, AntV);
+      break;
+    case 'todos':
+    default:
+      selVal = agoProj;
+      prevTrimAvg = avg3(Mai, Jun, AntV);
+      break;
+  }
+
+  const meta    = isGlobal ? m.globalMeta : m.meta[i];
+  const varMeta = (selVal != null && meta > 0) ? (selVal / meta - 1) * 100 : null;
+  const varTrim = (selVal != null && prevTrimAvg != null && prevTrimAvg > 0)
+    ? (selVal / prevTrimAvg - 1) * 100 : null;
+
+  return { selVal, varMeta, varTrim, meta };
+}
+
+// Re-renders META, VAR. S/ META, VAR. TRIM. columns based on current _mePeriodo
+function _meRenderRows() {
+  if (!DATA.matrizEficiencia) return;
+  const m = DATA.matrizEficiencia;
+  const mesAntKey   = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim();
+  const mesCurtoKey = DATA.meta.mesCurto || 'Ago';
+
+  function hv(key, i) {
+    const arr = m.historico[key];
+    return (arr && arr[i] != null) ? arr[i] : null;
+  }
+  function effCell(v, extraClass) {
+    if (v == null) return `<td class="td-muted">—</td>`;
+    return `<td class="${extraClass || ''}">${v.toFixed(2)}%</td>`;
+  }
+  function varCell(v) {
+    if (v == null) return `<td class="td-muted">—</td>`;
+    const cls = v >= 0 ? 'td-pos' : 'td-neg';
+    return `<td class="${cls}">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</td>`;
+  }
+  // Period label for column header
+  const labelMap = {
+    jan:'Jan/26', fev:'Fev/26', mar:'Mar/26', abr:'Abr/26',
+    mai:'Mai/26', jun:'Jun/26', jul: (DATA.meta.mesAnterior || 'Jul/26'),
+    trim:'Média Trim.', ago: DATA.meta.mesCurto || 'Ago', todos:'Ago/26 Proj.'
+  };
+  const colLabel = labelMap[_mePeriodo] || 'Resultado';
+
+  // Update column header text
+  const thMeta = document.getElementById('thMeMeta');
+  const thVarMeta = document.getElementById('thMeVarMeta');
+  const thVarTrim = document.getElementById('thMeVarTrim');
+  if (thMeta)    thMeta.textContent    = 'Meta';
+  if (thVarMeta) thVarMeta.textContent = `Var. s/ Meta (${colLabel})`;
+  if (thVarTrim) thVarTrim.textContent = `Var. Trim. (${colLabel})`;
+
+  let rows = '';
+  m.faixas.forEach((f, i) => {
+    const jan   = hv('Jan',i), fev = hv('Fev',i), mar = hv('Mar',i);
+    const abr   = hv('Abr',i), mai = hv('Mai',i), jun = hv('Jun',i);
+    const julR  = hv(mesAntKey, i);
+    const agoR  = hv(mesCurtoKey, i) ?? 0;
+    const trim  = julR != null ? (mai + jun + julR) / 3 : ((mai + jun) / 2);
+    const agoP  = m.projAtual[i];
+    const meta  = m.meta[i];
+
+    const { varMeta, varTrim } = _meGetPeriodData(i, false);
+
+    rows += `<tr>
+      <td>${f.label}</td>
+      ${effCell(jan)} ${effCell(fev)} ${effCell(mar)} ${effCell(abr)}
+      ${effCell(mai)} ${effCell(jun)}
+      ${julR != null ? effCell(julR) : '<td class="td-muted">—</td>'}
+      ${effCell(trim)}
+      ${effCell(agoR)}
+      <td class="td-julproj">${agoP.toFixed(2)}%</td>
+      <td>${meta.toFixed(2)}%</td>
+      ${varCell(varMeta)}
+      ${varCell(varTrim)}
+    </tr>`;
+  });
+
+  // Global row
+  const gh = m.globalHistorico;
+  const gAntV  = gh[mesAntKey]   ?? null;
+  const gCurV  = gh[mesCurtoKey] ?? 0;
+  const gMai = gh['Mai'], gJun = gh['Jun'];
+  const gTrim = gAntV != null ? (gMai + gJun + gAntV) / 3 : (gMai + gJun) / 2;
+  const gJan  = gh['Jan'], gFev = gh['Fev'], gMar = gh['Mar'], gAbr = gh['Abr'];
+  const { varMeta: gVarMeta, varTrim: gVarTrim } = _meGetPeriodData(0, true);
+
+  rows += `<tr class="row-global">
+    <td>Eficiência Global</td>
+    ${effCell(gJan)} ${effCell(gFev)} ${effCell(gMar)} ${effCell(gAbr)}
+    ${effCell(gMai)} ${effCell(gJun)}
+    ${gAntV != null ? effCell(gAntV) : '<td class="td-muted">—</td>'}
+    ${effCell(gTrim)}
+    ${effCell(gCurV)}
+    <td class="td-julproj">${m.globalProjAtual.toFixed(2)}%</td>
+    <td>${m.globalMeta.toFixed(2)}%</td>
+    ${varCell(gVarMeta)}
+    ${varCell(gVarTrim)}
+  </tr>`;
+
+  document.getElementById('tableMatrizBody').innerHTML = rows;
+  _meAplicarFoco();
 }
 
 function _meUpdateDestaque() {
@@ -2926,86 +3072,7 @@ function _meAplicarFoco() {
 }
 
 function initMatrizEficiencia() {
-  const m = DATA.matrizEficiencia;
-
-  function effCell(v, extraClass) {
-    return `<td class="${extraClass || ''}">${v.toFixed(2)}%</td>`;
-  }
-  function varMetaCell(jul, meta) {
-    const v   = (jul / meta - 1) * 100;
-    const cls = v >= 0 ? 'td-pos' : 'td-neg';
-    const sinal = v >= 0 ? '+' : '';
-    return `<td class="${cls}">${sinal}${v.toFixed(2)}%</td>`;
-  }
-  function varTrimCell(v) {
-    const cls = v >= 0 ? 'td-pos' : 'td-neg';
-    const sinal = v >= 0 ? '+' : '';
-    return `<td class="${cls}">${sinal}${v.toFixed(2)}%</td>`;
-  }
-
-  let rows = '';
-  m.faixas.forEach((f, i) => {
-    const jan     = m.historico["Jan"][i];
-    const fev     = m.historico["Fev"][i];
-    const mar     = m.historico["Mar"][i];
-    const abr     = m.historico["Abr"][i];
-    const mai     = m.historico["Mai"][i];
-    const jun     = m.historico["Jun"][i];
-    // mesAntKey = mês anterior fechado (ex: "Jul"); mesCurtoKey = mês atual parcial (ex: "Ago")
-    const mesAntKey    = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim();
-    const mesCurtoKey  = DATA.meta.mesCurto || 'Ago';
-    const julReal  = (m.historico[mesAntKey]   && m.historico[mesAntKey][i]   != null) ? m.historico[mesAntKey][i]   : null;
-    const agoReal  = (m.historico[mesCurtoKey] && m.historico[mesCurtoKey][i] != null) ? m.historico[mesCurtoKey][i] : 0;
-    const trim     = julReal != null ? (mai + jun + julReal) / 3 : (mai + jun) / 2;
-    const agoProj  = m.projAtual[i];
-    const meta     = m.meta[i];
-    const vTrim    = m.varTrim[i];
-
-    rows += `<tr>
-      <td>${f.label}</td>
-      ${effCell(jan)}
-      ${effCell(fev)}
-      ${effCell(mar)}
-      ${effCell(abr)}
-      ${effCell(mai)}
-      ${effCell(jun)}
-      ${julReal != null ? effCell(julReal) : '<td class="td-muted">—</td>'}
-      ${effCell(trim)}
-      ${effCell(agoReal)}
-      <td class="td-julproj">${agoProj.toFixed(2)}%</td>
-      <td>${meta.toFixed(2)}%</td>
-      ${varMetaCell(agoProj, meta)}
-      ${varTrimCell(vTrim)}
-    </tr>`;
-  });
-
-  const gh    = m.globalHistorico;
-  const _gAntKey  = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim();
-  const _gCurKey  = DATA.meta.mesCurto || 'Ago';
-  const gJan  = gh["Jan"], gFev = gh["Fev"], gMar = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"];
-  const gJulReal  = gh[_gAntKey] != null ? gh[_gAntKey] : null;
-  const gAgoReal  = gh[_gCurKey] != null ? gh[_gCurKey] : 0;
-  const gTrim = gJulReal != null ? (gMai + gJun + gJulReal) / 3 : (gMai + gJun) / 2;
-
-  rows += `<tr class="row-global">
-    <td>Eficiência Global</td>
-    ${effCell(gJan)}
-    ${effCell(gFev)}
-    ${effCell(gMar)}
-    ${effCell(gAbr)}
-    ${effCell(gMai)}
-    ${effCell(gJun)}
-    ${gJulReal != null ? effCell(gJulReal) : '<td class="td-muted">—</td>'}
-    ${effCell(gTrim)}
-    ${effCell(gAgoReal)}
-    <td class="td-julproj">${m.globalProjAtual.toFixed(2)}%</td>
-    <td>${m.globalMeta.toFixed(2)}%</td>
-    ${varMetaCell(m.globalProjAtual, m.globalMeta)}
-    ${varTrimCell(m.globalVarTrim)}
-  </tr>`;
-
-  document.getElementById('tableMatrizBody').innerHTML = rows;
-  _meAplicarFoco();
+  _meRenderRows();
   _meUpdateDestaque();
 }
 
