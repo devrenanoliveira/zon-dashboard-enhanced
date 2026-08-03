@@ -1716,16 +1716,33 @@ function _cfUpdateDonut() {
         type:'dot', color: _CF_PRE_COLORS[i], label: f.faixa
       })));
     } else {
-      // Historical: only total pre available, no per-faixa breakdown
-      chart.data.labels = ['Pré-Prejuízo'];
-      chart.data.datasets[0].data = [evEntry.pre];
-      chart.data.datasets[0].backgroundColor = [COLORS.blue];
-      document.getElementById('donutCenter').innerHTML =
-        `<div class="donut-val">${fmt.brl(evEntry.pre)}</div><div class="donut-lbl">${mesKey}/26</div>`;
-      document.getElementById('cf-donut-title').textContent = `Pré-Prejuízo — ${mesKey}/26`;
-      makeLegend('legendDonut', [
-        { type:'dot', color: COLORS.blue, label: `Pré-Prejuízo total` }
-      ]);
+      const histFasesHist = (d.evolucaoFases || {})[mesKey] || null;
+      if (histFasesHist) {
+        // Historical with per-faixa data available
+        const fasesLabels = d.fases.slice(0, 6).map(f => f.faixa);
+        const fasesVals   = histFasesHist.slice(0, 6).map(f => f.valor);
+        const preTotal    = fasesVals.reduce((s, v) => s + v, 0);
+        chart.data.labels = fasesLabels;
+        chart.data.datasets[0].data = fasesVals;
+        chart.data.datasets[0].backgroundColor = _CF_PRE_COLORS;
+        document.getElementById('donutCenter').innerHTML =
+          `<div class="donut-val">${fmt.brl(preTotal)}</div><div class="donut-lbl">${mesKey}/26</div>`;
+        document.getElementById('cf-donut-title').textContent = `Pré-Prejuízo por Faixa (B–G) — ${mesKey}/26`;
+        makeLegend('legendDonut', fasesLabels.map((lbl, i) => ({
+          type:'dot', color: _CF_PRE_COLORS[i], label: lbl
+        })));
+      } else {
+        // Historical: only total pre available
+        chart.data.labels = ['Pré-Prejuízo'];
+        chart.data.datasets[0].data = [evEntry.pre];
+        chart.data.datasets[0].backgroundColor = [COLORS.blue];
+        document.getElementById('donutCenter').innerHTML =
+          `<div class="donut-val">${fmt.brl(evEntry.pre)}</div><div class="donut-lbl">${mesKey}/26</div>`;
+        document.getElementById('cf-donut-title').textContent = `Pré-Prejuízo — ${mesKey}/26`;
+        makeLegend('legendDonut', [
+          { type:'dot', color: COLORS.blue, label: `Pré-Prejuízo total` }
+        ]);
+      }
     }
   } else {
     if (isAtual || !evEntry) {
@@ -1741,16 +1758,33 @@ function _cfUpdateDonut() {
         type:'dot', color: _CF_POS_COLORS[i], label: f.faixa
       })));
     } else {
-      // Historical: only total pos available, no per-faixa breakdown
-      chart.data.labels = ['Pós-Prejuízo'];
-      chart.data.datasets[0].data = [evEntry.pos];
-      chart.data.datasets[0].backgroundColor = [COLORS.gold];
-      document.getElementById('donutCenter').innerHTML =
-        `<div class="donut-val">${fmt.brl(evEntry.pos)}</div><div class="donut-lbl">${mesKey}/26</div>`;
-      document.getElementById('cf-donut-title').textContent = `Pós-Prejuízo — ${mesKey}/26`;
-      makeLegend('legendDonut', [
-        { type:'dot', color: COLORS.gold, label: `Pós-Prejuízo total` }
-      ]);
+      const histFasesPos = (d.evolucaoFases || {})[mesKey] || null;
+      if (histFasesPos) {
+        // Historical with per-faixa data available
+        const fasesLabels = d.fases.slice(6).map(f => f.faixa);
+        const fasesVals   = histFasesPos.slice(6).map(f => f.valor);
+        const posTotal    = fasesVals.reduce((s, v) => s + v, 0);
+        chart.data.labels = fasesLabels;
+        chart.data.datasets[0].data = fasesVals;
+        chart.data.datasets[0].backgroundColor = _CF_POS_COLORS;
+        document.getElementById('donutCenter').innerHTML =
+          `<div class="donut-val">${fmt.brl(posTotal)}</div><div class="donut-lbl">${mesKey}/26</div>`;
+        document.getElementById('cf-donut-title').textContent = `Pós-Prejuízo por Faixa (H–J) — ${mesKey}/26`;
+        makeLegend('legendDonut', fasesLabels.map((lbl, i) => ({
+          type:'dot', color: _CF_POS_COLORS[i], label: lbl
+        })));
+      } else {
+        // Historical: only total pos available
+        chart.data.labels = ['Pós-Prejuízo'];
+        chart.data.datasets[0].data = [evEntry.pos];
+        chart.data.datasets[0].backgroundColor = [COLORS.gold];
+        document.getElementById('donutCenter').innerHTML =
+          `<div class="donut-val">${fmt.brl(evEntry.pos)}</div><div class="donut-lbl">${mesKey}/26</div>`;
+        document.getElementById('cf-donut-title').textContent = `Pós-Prejuízo — ${mesKey}/26`;
+        makeLegend('legendDonut', [
+          { type:'dot', color: COLORS.gold, label: `Pós-Prejuízo total` }
+        ]);
+      }
     }
   }
   chart.update();
@@ -2615,7 +2649,7 @@ function meSetPeriodo(p) {
   _meAplicarFoco();
 }
 
-const _ME_COL = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, jul: 7, trim: 8, ago: 9 };
+const _ME_COL = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, trim: 7, jul: 8 };
 
 function _meAplicarFoco() {
   const colIdx = _ME_COL[_mePeriodo]; 
@@ -2653,11 +2687,10 @@ function initMatrizEficiencia() {
     const abr     = m.historico["Abr"][i];
     const mai     = m.historico["Mai"][i];
     const jun     = m.historico["Jun"][i];
-    const julHist = m.historico["Jul"] ? m.historico["Jul"][i] : null;
-    const mesCurto = DATA.meta.mesCurto || 'Ago';
-    const agoReal = m.historico[mesCurto] ? m.historico[mesCurto][i] : null;
-    const trim    = (julHist !== null) ? (mai + jun + julHist) / 3 : (abr + mai + jun) / 3;
-    const agoProj = m.projAtual[i];
+    const mesCurto = DATA.meta.mesCurto || 'Jul';
+    const julReal = m.historico[mesCurto] ? m.historico[mesCurto][i] : null;
+    const trim    = (abr + mai + jun) / 3;
+    const jul     = m.projAtual[i];
     const meta    = m.meta[i];
     const vTrim   = m.varTrim[i];
 
@@ -2669,22 +2702,20 @@ function initMatrizEficiencia() {
       ${effCell(abr)}
       ${effCell(mai)}
       ${effCell(jun)}
-      ${effCell(julHist)}
       ${effCell(trim)}
-      ${effCell(agoReal)}
-      <td class="td-julproj">${agoProj.toFixed(2)}%</td>
+      ${effCell(julReal)}
+      <td class="td-julproj">${jul.toFixed(2)}%</td>
       <td>${meta.toFixed(2)}%</td>
-      ${varMetaCell(agoProj, meta)}
+      ${varMetaCell(jul, meta)}
       ${varTrimCell(vTrim)}
     </tr>`;
   });
 
   const gh    = m.globalHistorico;
-  const _mc   = DATA.meta.mesCurto || 'Ago';
+  const _mc   = DATA.meta.mesCurto || 'Jul';
   const gJan  = gh["Jan"], gFev = gh["Fev"], gMar = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"];
-  const gJul  = gh["Jul"] ?? null;
   const gAtualReal = gh[_mc] ?? null;
-  const gTrim = (gJul !== null) ? (gMai + gJun + gJul) / 3 : (gAbr + gMai + gJun) / 3;
+  const gTrim = (gAbr + gMai + gJun) / 3;
 
   rows += `<tr class="row-global">
     <td>Eficiência Global</td>
@@ -2694,7 +2725,6 @@ function initMatrizEficiencia() {
     ${effCell(gAbr)}
     ${effCell(gMai)}
     ${effCell(gJun)}
-    ${effCell(gJul)}
     ${effCell(gTrim)}
     ${effCell(gAtualReal)}
     <td class="td-julproj">${m.globalProjAtual.toFixed(2)}%</td>
