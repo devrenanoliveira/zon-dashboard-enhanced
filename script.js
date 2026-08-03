@@ -2749,12 +2749,15 @@ function initMatrizEficiencia() {
     const abr     = m.historico["Abr"][i];
     const mai     = m.historico["Mai"][i];
     const jun     = m.historico["Jun"][i];
-    const mesCurto = DATA.meta.mesCurto || 'Jul';
-    const julReal = (m.historico[mesCurto] && m.historico[mesCurto][i] != null) ? m.historico[mesCurto][i] : null;
-    const trim    = julReal != null ? (mai + jun + julReal) / 3 : (mai + jun) / 2;
-    const jul     = m.projAtual[i];
-    const meta    = m.meta[i];
-    const vTrim   = m.varTrim[i];
+    // mesAntKey = mês anterior fechado (ex: "Jul"); mesCurtoKey = mês atual parcial (ex: "Ago")
+    const mesAntKey    = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim();
+    const mesCurtoKey  = DATA.meta.mesCurto || 'Ago';
+    const julReal  = (m.historico[mesAntKey]   && m.historico[mesAntKey][i]   != null) ? m.historico[mesAntKey][i]   : null;
+    const agoReal  = (m.historico[mesCurtoKey] && m.historico[mesCurtoKey][i] != null) ? m.historico[mesCurtoKey][i] : 0;
+    const trim     = julReal != null ? (mai + jun + julReal) / 3 : (mai + jun) / 2;
+    const agoProj  = m.projAtual[i];
+    const meta     = m.meta[i];
+    const vTrim    = m.varTrim[i];
 
     rows += `<tr>
       <td>${f.label}</td>
@@ -2766,18 +2769,21 @@ function initMatrizEficiencia() {
       ${effCell(jun)}
       ${julReal != null ? effCell(julReal) : '<td class="td-muted">—</td>'}
       ${effCell(trim)}
-      <td class="td-julproj">${jul.toFixed(2)}%</td>
+      ${effCell(agoReal)}
+      <td class="td-julproj">${agoProj.toFixed(2)}%</td>
       <td>${meta.toFixed(2)}%</td>
-      ${varMetaCell(jul, meta)}
+      ${varMetaCell(agoProj, meta)}
       ${varTrimCell(vTrim)}
     </tr>`;
   });
 
   const gh    = m.globalHistorico;
-  const _mc   = DATA.meta.mesCurto || 'Jul';
+  const _gAntKey  = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim();
+  const _gCurKey  = DATA.meta.mesCurto || 'Ago';
   const gJan  = gh["Jan"], gFev = gh["Fev"], gMar = gh["Mar"], gAbr = gh["Abr"], gMai = gh["Mai"], gJun = gh["Jun"];
-  const gAtualReal = gh[_mc] != null ? gh[_mc] : null;
-  const gTrim = gAtualReal != null ? (gMai + gJun + gAtualReal) / 3 : (gMai + gJun) / 2;
+  const gJulReal  = gh[_gAntKey] != null ? gh[_gAntKey] : null;
+  const gAgoReal  = gh[_gCurKey] != null ? gh[_gCurKey] : 0;
+  const gTrim = gJulReal != null ? (gMai + gJun + gJulReal) / 3 : (gMai + gJun) / 2;
 
   rows += `<tr class="row-global">
     <td>Eficiência Global</td>
@@ -2787,8 +2793,9 @@ function initMatrizEficiencia() {
     ${effCell(gAbr)}
     ${effCell(gMai)}
     ${effCell(gJun)}
-    ${gAtualReal != null ? effCell(gAtualReal) : '<td class="td-muted">—</td>'}
+    ${gJulReal != null ? effCell(gJulReal) : '<td class="td-muted">—</td>'}
     ${effCell(gTrim)}
+    ${effCell(gAgoReal)}
     <td class="td-julproj">${m.globalProjAtual.toFixed(2)}%</td>
     <td>${m.globalMeta.toFixed(2)}%</td>
     ${varMetaCell(m.globalProjAtual, m.globalMeta)}
