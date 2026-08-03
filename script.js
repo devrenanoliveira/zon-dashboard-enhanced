@@ -2709,6 +2709,108 @@ function meSetPeriodo(p) {
     btn.classList.toggle('active', btn.dataset.me === p);
   });
   _meAplicarFoco();
+  _meUpdateDestaque();
+}
+
+function _meUpdateDestaque() {
+  const m = DATA.matrizEficiencia;
+  if (!m || !document.getElementById('me-destaque')) return;
+
+  const mesAntKey   = (DATA.meta.mesAnterior || 'Jul/26').split('/')[0].trim(); // "Jul"
+  const mesCurtoKey = DATA.meta.mesCurto || 'Ago';                              // "Ago"
+  const mesRefLabel = DATA.meta.mesReferencia || (mesCurtoKey + '/26');         // "Agosto 2026"
+
+  // Map _mePeriodo → { histKey, label, isTrim, isCurrent }
+  const periodoMap = {
+    jan:  { histKey: 'Jan', label: 'Jan/26' },
+    fev:  { histKey: 'Fev', label: 'Fev/26' },
+    mar:  { histKey: 'Mar', label: 'Mar/26' },
+    abr:  { histKey: 'Abr', label: 'Abr/26' },
+    mai:  { histKey: 'Mai', label: 'Mai/26' },
+    jun:  { histKey: 'Jun', label: 'Jun/26' },
+    jul:  { histKey: mesAntKey, label: (DATA.meta.mesAnterior || 'Jul/26') },
+    trim: { isTrim: true,  label: 'Média Trim. (Mai–' + mesAntKey + ')' },
+    ago:  { histKey: mesCurtoKey, label: mesRefLabel, isCurrent: true },
+    todos:{ histKey: mesCurtoKey, label: mesRefLabel, isCurrent: true },
+  };
+
+  const cfg = periodoMap[_mePeriodo] || periodoMap['todos'];
+
+  // Build per-faixa efficiency values for the selected period
+  const gh = m.globalHistorico;
+  const gMai = gh['Mai'] || 0, gJun = gh['Jun'] || 0;
+  const gJulReal = gh[mesAntKey] != null ? gh[mesAntKey] : null;
+
+  let faixaVals, globalVal;
+
+  if (cfg.isTrim) {
+    // Trimestral average (Mai + Jun + Jul) / 3
+    faixaVals = m.faixas.map((_, i) => {
+      const mai = m.historico['Mai'][i] || 0;
+      const jun = m.historico['Jun'][i] || 0;
+      const julR = (m.historico[mesAntKey] && m.historico[mesAntKey][i] != null) ? m.historico[mesAntKey][i] : null;
+      return julR != null ? (mai + jun + julR) / 3 : (mai + jun) / 2;
+    });
+    globalVal = gJulReal != null ? (gMai + gJun + gJulReal) / 3 : (gMai + gJun) / 2;
+  } else if (cfg.isCurrent) {
+    // Current month projection
+    faixaVals = m.projAtual.slice();
+    globalVal = m.globalProjAtual;
+  } else {
+    // Historical month
+    const hk = cfg.histKey;
+    faixaVals = m.faixas.map((_, i) =>
+      (m.historico[hk] && m.historico[hk][i] != null) ? m.historico[hk][i] : 0
+    );
+    globalVal = gh[hk] != null ? gh[hk] : 0;
+  }
+
+  // Compute ICM per faixa = val / meta * 100
+  const icmFaixas = faixaVals.map((v, i) => m.meta[i] > 0 ? v / m.meta[i] * 100 : 0);
+  const globalIcm = m.globalMeta > 0 ? globalVal / m.globalMeta * 100 : 0;
+
+  const acimaMeta  = m.faixas.filter((_, i) => icmFaixas[i] >= 100);
+  const abaixoMeta = m.faixas.filter((_, i) => icmFaixas[i] < 100);
+  const melhorIdx  = icmFaixas.indexOf(Math.max(...icmFaixas));
+  const piorIdx    = icmFaixas.indexOf(Math.min(...icmFaixas));
+
+  // Tendency vs trimestral (varTrim only makes sense for current/projection period)
+  const showTend = cfg.isCurrent || _mePeriodo === 'todos';
+  const melhorando = showTend ? m.faixas.filter((_, i) => m.varTrim[i] > 0).map(f => f.id) : [];
+  const piorando   = showTend ? m.faixas.filter((_, i) => m.varTrim[i] < 0).map(f => f.id) : [];
+  const varTrimGlobal = showTend ? m.globalVarTrim : null;
+
+  const globalStatusVerb = cfg.isCurrent || _mePeriodo === 'todos' ? 'projetada' : 'registrada';
+  const globalAboveBelow = globalIcm >= 100 ? 'acima' : 'abaixo';
+  const globalVarPart = varTrimGlobal != null
+    ? `, com variação de <strong>${varTrimGlobal >= 0 ? '+' : ''}${varTrimGlobal.toFixed(2)} p.p.</strong> vs. média trimestral.`
+    : '.';
+
+  const globalStatus = `<strong>ICM Global s/ Meta: ${globalIcm.toFixed(1)}%</strong> — eficiência global ${globalStatusVerb} <strong>${globalAboveBelow} da meta</strong> em ${cfg.label}${globalVarPart}`;
+
+  document.getElementById('me-destaque').innerHTML = `
+    <div class="destaque-title">⚡ Insights — ${cfg.label}</div>
+    <p class="destaque-text">${globalStatus}</p>
+    <p class="destaque-text" style="margin-top:10px">
+      <strong>${acimaMeta.length} de ${m.faixas.length} faixas</strong> acima da meta de eficiência:
+      ${acimaMeta.map(f => `<strong>${f.id}</strong>`).join(', ') || '—'}.
+      ${abaixoMeta.length > 0
+        ? `Faixas abaixo da meta: ${abaixoMeta.map(f => `<strong>${f.id}</strong>`).join(', ')} — requerem atenção.`
+        : 'Todas as faixas acima da meta.'}
+    </p>
+    <p class="destaque-text" style="margin-top:10px">
+      <strong>Melhor ICM s/ Meta:</strong> Faixa <strong>${m.faixas[melhorIdx].id}</strong>
+      com <strong style="color:var(--delta-pos)">${icmFaixas[melhorIdx].toFixed(1)}%</strong> (${faixaVals[melhorIdx].toFixed(2)}% vs. meta ${m.meta[melhorIdx].toFixed(2)}%).
+      <strong>Pior ICM:</strong> Faixa <strong>${m.faixas[piorIdx].id}</strong>
+      com <strong style="color:var(--delta-neg)">${icmFaixas[piorIdx].toFixed(1)}%</strong>.
+    </p>
+    ${melhorando.length > 0 ? `
+    <p class="destaque-text" style="margin-top:10px">
+      Faixas com <strong>tendência de melhora</strong> vs. média trimestral:
+      ${melhorando.map(l => `<strong>${l}</strong>`).join(', ')}.
+      ${piorando.length > 0 ? `Tendência de queda: ${piorando.map(l => `<strong>${l}</strong>`).join(', ')}.` : ''}
+    </p>` : ''}
+  `;
 }
 
 const _ME_COL = { jan: 1, fev: 2, mar: 3, abr: 4, mai: 5, jun: 6, jul: 7, trim: 8, ago: 9 };
@@ -2804,48 +2906,7 @@ function initMatrizEficiencia() {
 
   document.getElementById('tableMatrizBody').innerHTML = rows;
   _meAplicarFoco();
-
-  const acimaMeta  = m.faixas.filter((_, i) => m.icmMeta[i] >= 100);
-  const abaixoMeta = m.faixas.filter((_, i) => m.icmMeta[i] < 100);
-  const melhorIdx  = m.icmMeta.indexOf(Math.max(...m.icmMeta));
-  const piorIdx    = m.icmMeta.indexOf(Math.min(...m.icmMeta));
-
-  const melhorandoJul = m.faixas
-    .filter((_, i) => m.varTrim[i] > 0)
-    .map(f => f.id);
-  const piorandoJul = m.faixas
-    .filter((_, i) => m.varTrim[i] < 0)
-    .map(f => f.id);
-
-  const _mesCurtoLabel = DATA.meta.mesReferencia || (DATA.meta.mesCurto ? DATA.meta.mesCurto + '/26' : 'Jul/26');
-  const gIcm = m.globalIcmMeta;
-  const globalStatus = gIcm >= 100
-    ? `<strong>ICM Global s/ Meta: ${gIcm.toFixed(1)}%</strong> — eficiência global projetada <strong>acima da meta</strong> em ${_mesCurtoLabel}, com variação de <strong>${m.globalVarTrim >= 0 ? '+' : ''}${m.globalVarTrim.toFixed(2)} p.p.</strong> vs. média trimestral.`
-    : `<strong>ICM Global s/ Meta: ${gIcm.toFixed(1)}%</strong> — eficiência global projetada <strong>abaixo da meta</strong> em ${_mesCurtoLabel}, com variação de <strong>${m.globalVarTrim.toFixed(2)} p.p.</strong> vs. média trimestral.`;
-
-  document.getElementById('me-destaque').innerHTML = `
-    <div class="destaque-title">⚡ Destaque Automático — ${_mesCurtoLabel}</div>
-    <p class="destaque-text">${globalStatus}</p>
-    <p class="destaque-text" style="margin-top:10px">
-      <strong>${acimaMeta.length} de ${m.faixas.length} faixas</strong> projetadas acima da meta de eficiência:
-      ${acimaMeta.map(f => `<strong>${f.id}</strong>`).join(', ') || '—'}.
-      ${abaixoMeta.length > 0
-        ? `Faixas abaixo da meta: ${abaixoMeta.map(f => `<strong>${f.id}</strong>`).join(', ')} — requerem atenção.`
-        : 'Todas as faixas acima da meta.'}
-    </p>
-    <p class="destaque-text" style="margin-top:10px">
-      <strong>Melhor ICM s/ Meta:</strong> Faixa <strong>${m.faixas[melhorIdx].id}</strong>
-      com <strong style="color:var(--delta-pos)">${m.icmMeta[melhorIdx].toFixed(1)}%</strong> (proj. ${m.projAtual[melhorIdx].toFixed(2)}% vs. meta ${m.meta[melhorIdx].toFixed(2)}%).
-      <strong>Pior ICM:</strong> Faixa <strong>${m.faixas[piorIdx].id}</strong>
-      com <strong style="color:var(--delta-neg)">${m.icmMeta[piorIdx].toFixed(1)}%</strong>.
-    </p>
-    ${melhorandoJul.length > 0 ? `
-    <p class="destaque-text" style="margin-top:10px">
-      Faixas com <strong>tendência de melhora</strong> vs. média trimestral:
-      ${melhorandoJul.map(l => `<strong>${l}</strong>`).join(', ')}.
-      ${piorandoJul.length > 0 ? `Tendência de queda: ${piorandoJul.map(l => `<strong>${l}</strong>`).join(', ')}.` : ''}
-    </p>` : ''}
-  `;
+  _meUpdateDestaque();
 }
 
 // ══════════════════════════════════════════════════════════════
