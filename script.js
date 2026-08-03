@@ -775,13 +775,23 @@ function _pduUpdateMes() {
   const entry  = meses[_pduMes];
 
   if (entry) {
-    note.style.display   = 'none';
-    detail.style.display = '';
-
     const serie    = entry.dados;
     const mesNome  = entry.nome;
     const totalDUs = entry.totalDUs;
     const aberta   = !!entry.emAndamento;
+
+    if (!serie || serie.length === 0) {
+      note.style.display   = '';
+      detail.style.display = 'none';
+      note.innerHTML = `<strong>ℹ️ Dados de produção por DU ainda não disponíveis para ${mesNome}.</strong><br>
+        Os dados serão carregados automaticamente nos próximos dias úteis.`;
+      document.getElementById('pdu-subtitle').textContent = `${mesNome} — aguardando dados`;
+      document.getElementById('pdu-kpis').innerHTML = '';
+      return;
+    }
+
+    note.style.display   = 'none';
+    detail.style.display = '';
 
     _pduBuildCompFilter();
 
@@ -849,6 +859,7 @@ function _pduUpdateMes() {
 }
 
 function _pduRenderTabela(serie, serieRef, totalDUs, mesNome, mesRefNome, aberta) {
+  if (!serie || serie.length === 0) return;
   document.getElementById('pdu-table-title').textContent = 'Detalhe por DU — ' + mesNome;
   let acum = 0, acumRef = 0, rows = '';
   serie.forEach((item, idx) => {
@@ -1178,6 +1189,7 @@ function _rduUpdateMes() {
 }
 
 function _rduRenderTabela(serie, serieRef, meta, totalDUs, mesNome, mesRefNome) {
+  if (!serie || serie.length === 0) return;
   const isAtual = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
   document.getElementById('rdu-table-title').textContent = 'Detalhe por DU — ' + mesNome;
   let acum = 0, acumRef = 0, rows = '';
