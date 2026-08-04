@@ -2462,7 +2462,8 @@ function pvSetTabelaMes(m) {
 function initPerfVenc() {
   const d = DATA.performanceVencimentos;
   const historicoV = d.historicoVencimentos || {};
-  const mesAtualKey = DATA.meta.mesReferencia || ((DATA.meta.mesCurto || 'Ago') + '/26');
+  // Always use short form "Ago/26" for consistency with historical keys
+  const mesAtualKey = (DATA.meta.mesCurto || 'Ago') + '/26';
 
   // Months for table selector: current + historical (most recent first)
   const histKeys = Object.keys(historicoV).reverse();
@@ -2523,32 +2524,46 @@ function initPerfVenc() {
         <div class="perf-desc" style="color:${isAtual ? 'var(--brand-gold)' : '#10B981'}">${isAtual ? 'Ainda não fechados' : 'Mês encerrado'}</div>
       </div>`;
 
-    document.getElementById('tableVencBody').innerHTML = vencs.map(v => {
-      const st = statusMap[v.status] || statusMap.pendente;
-      const isMaturando = v.status === 'maturando';
-      const isPendente  = v.status === 'pendente';
-      const dimCls = isMaturando ? '' : (isPendente ? 'td-muted' : '');
-      const d0Lbl  = v.mesD0 != null ? fmt.pct(v.mesD0) + (v.parcial ? '*' : '') : '—';
-      const d4Lbl  = v.mesD4 != null ? fmt.pct(v.mesD4) + (v.parcial ? '*' : '') : '—';
-      const v0Lbl  = v.varD0 != null ? `<span class="${v.varD0>0?'td-pos':'td-neg'}">${v.varD0>0?'+':''}${v.varD0.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
-      const v4Lbl  = v.varD4 != null ? `<span class="${v.varD4>0?'td-pos':'td-neg'}">${v.varD4>0?'+':''}${v.varD4.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
-      const diaLabel = isMaturando
-        ? `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`
-        : (isPendente
-          ? `<span class="td-muted">Dia ${v.dia}</span>`
-          : `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`);
-      const subLabel = isMaturando ? ` <span class="td-muted" style="font-size:.7rem">(D${v.diaCorrido})</span>` : '';
-      return `<tr>
-        <td>${diaLabel}${subLabel}</td>
-        <td class="${dimCls}">${fmt.pct(v.mediaTrimD0)}</td>
-        <td class="td-blue">${d0Lbl}</td>
-        <td>${v0Lbl}</td>
-        <td class="${dimCls}">${fmt.pct(v.mediaTrimD4)}</td>
-        <td class="td-blue">${d4Lbl}</td>
-        <td>${v4Lbl}</td>
-        <td><span class="badge ${st.cls}">${st.label}${isMaturando&&v.diaCorrido?' (D'+v.diaCorrido+')':''}</span></td>
-      </tr>`;
-    }).join('');
+    // Check if historical month has per-dia breakdown available
+    const hasPerDiaData = isAtual || vencs.some(v => v.mesD0 != null || v.mesD4 != null);
+    if (!hasPerDiaData && vencs.length > 0) {
+      const d0g = r?.d0?.percentual != null ? fmt.pct(r.d0.percentual) : '—';
+      const d4g = r?.d4?.percentual != null ? fmt.pct(r.d4.percentual) : '—';
+      document.getElementById('tableVencBody').innerHTML = `
+        <tr><td colspan="8" style="text-align:center;padding:28px 16px">
+          <div style="color:var(--ink-secondary);font-size:.85rem;line-height:1.8">
+            Detalhamento por dia de vencimento não disponível para <strong>${mesKey}</strong>.<br>
+            <span style="color:var(--ink-primary)">Performance global registrada: D0 <strong>${d0g}</strong> · D4 <strong>${d4g}</strong></span>
+          </div>
+        </td></tr>`;
+    } else {
+      document.getElementById('tableVencBody').innerHTML = vencs.map(v => {
+        const st = statusMap[v.status] || statusMap.pendente;
+        const isMaturando = v.status === 'maturando';
+        const isPendente  = v.status === 'pendente';
+        const dimCls = isMaturando ? '' : (isPendente ? 'td-muted' : '');
+        const d0Lbl  = v.mesD0 != null ? fmt.pct(v.mesD0) + (v.parcial ? '*' : '') : '—';
+        const d4Lbl  = v.mesD4 != null ? fmt.pct(v.mesD4) + (v.parcial ? '*' : '') : '—';
+        const v0Lbl  = v.varD0 != null ? `<span class="${v.varD0>0?'td-pos':'td-neg'}">${v.varD0>0?'+':''}${v.varD0.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
+        const v4Lbl  = v.varD4 != null ? `<span class="${v.varD4>0?'td-pos':'td-neg'}">${v.varD4>0?'+':''}${v.varD4.toFixed(1)}%</span>` : '<span class="td-muted">—</span>';
+        const diaLabel = isMaturando
+          ? `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`
+          : (isPendente
+            ? `<span class="td-muted">Dia ${v.dia}</span>`
+            : `<span style="color:var(--brand-blue);font-weight:700">Dia ${v.dia}</span>`);
+        const subLabel = isMaturando ? ` <span class="td-muted" style="font-size:.7rem">(D${v.diaCorrido})</span>` : '';
+        return `<tr>
+          <td>${diaLabel}${subLabel}</td>
+          <td class="${dimCls}">${fmt.pct(v.mediaTrimD0)}</td>
+          <td class="td-blue">${d0Lbl}</td>
+          <td>${v0Lbl}</td>
+          <td class="${dimCls}">${fmt.pct(v.mediaTrimD4)}</td>
+          <td class="td-blue">${d4Lbl}</td>
+          <td>${v4Lbl}</td>
+          <td><span class="badge ${st.cls}">${st.label}${isMaturando&&v.diaCorrido?' (D'+v.diaCorrido+')':''}</span></td>
+        </tr>`;
+      }).join('');
+    }
 
     pvSetVenc(_pvVenc); // re-apply highlight
   };
@@ -2571,7 +2586,8 @@ function initPerfVenc() {
   const mesAtivo = new Set(meses);
   const d0Idx = curva.dias.indexOf(0);
   const d4Idx = curva.dias.indexOf(4);
-  const curvaAtualKey = meses[meses.length - 1];
+  // Use current month key from meta so closed months (including the last in the array) get forward-filled
+  const curvaAtualKey = (DATA.meta.mesCurto || 'Ago') + '/26';
 
   if (_pvMesSet === null) _pvMesSet = new Set(['trim', meses[meses.length - 1]]);
 
