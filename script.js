@@ -2899,9 +2899,13 @@ function _meGetPeriodData(i, isGlobal) {
   const hasMeta = metaByPeriod[_mePeriodo] !== null && metaByPeriod[_mePeriodo] !== undefined
     && !['jan','fev','mar','abr','mai'].includes(_mePeriodo);
 
-  const varMeta = (hasMeta && selVal != null && meta > 0) ? (selVal / meta - 1) * 100 : null;
-  const varTrim = (selVal != null && prevTrimAvg != null && prevTrimAvg > 0)
-    ? (selVal / prevTrimAvg - 1) * 100 : null;
+  // Para o período "ago" (Real parcial), as variâncias usam a Projeção —
+  // comparar real de mês incompleto com meta de mês cheio gera distorção.
+  const varSelVal = (_mePeriodo === 'ago') ? agoProj : selVal;
+
+  const varMeta = (hasMeta && varSelVal != null && meta > 0) ? (varSelVal / meta - 1) * 100 : null;
+  const varTrim = (varSelVal != null && prevTrimAvg != null && prevTrimAvg > 0)
+    ? (varSelVal / prevTrimAvg - 1) * 100 : null;
 
   return { selVal, varMeta, varTrim, meta: hasMeta ? meta : null };
 }
@@ -2938,9 +2942,12 @@ function _meRenderRows() {
   const thMeta = document.getElementById('thMeMeta');
   const thVarMeta = document.getElementById('thMeVarMeta');
   const thVarTrim = document.getElementById('thMeVarTrim');
+  const varColLabel = (_mePeriodo === 'ago')
+    ? `${DATA.meta.mesCurto || 'Ago'} Proj.`
+    : colLabel;
   if (thMeta)    thMeta.textContent    = 'Meta';
-  if (thVarMeta) thVarMeta.textContent = `Var. s/ Meta (${colLabel})`;
-  if (thVarTrim) thVarTrim.textContent = `Var. Trim. (${colLabel})`;
+  if (thVarMeta) thVarMeta.textContent = `Var. s/ Meta (${varColLabel})`;
+  if (thVarTrim) thVarTrim.textContent = `Var. Trim. (${varColLabel})`;
 
   let rows = '';
   m.faixas.forEach((f, i) => {
