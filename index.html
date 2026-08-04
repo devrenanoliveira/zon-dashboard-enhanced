@@ -68,6 +68,7 @@
   <button class="tab-btn" data-tab="segmento-faixa">Segmento de Faixa</button>
   <button class="tab-btn" data-tab="performance-venc">Performance de Vencimentos</button>
   <button class="tab-btn" data-tab="assessorias">Assessorias</button>
+  <button class="tab-btn" data-tab="internalizacao">Internalização</button>
   <span style="width:1px;background:rgba(255,255,255,.15);margin:6px 4px;align-self:stretch;"></span>
   <a href="https://targetszoncard.netlify.app/" target="_blank" rel="noopener"
      title="Metas e Racionais"
@@ -611,6 +612,53 @@
   </div>
 
   <p class="footnote">ICM = (Recuperado ÷ Meta) × 100. Efic. Atual = % recuperado sobre a carteira total da assessoria. Dados atualizados automaticamente a cada execução do script.</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     TAB 9 — INTERNALIZAÇÃO DA COBRANÇA
+═══════════════════════════════════════════════════════════ -->
+<section class="tab-panel" id="tab-internalizacao">
+  <p class="sec-label">Análise Estratégica · Jul/2026</p>
+  <h1 class="sec-title">Internalização da Cobrança Z-ON Card</h1>
+  <p class="sec-subtitle">Comparativo entre manter a cobrança 100% terceirizada e o modelo internalizado com equipe própria — Set/2026 a Dez/2027</p>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="int-kpis" style="margin-top:20px"></div>
+
+  <!-- Highlight bar -->
+  <div id="int-highlight" style="margin:20px 0 24px"></div>
+
+  <!-- Timeline fases -->
+  <p class="sec-label" style="margin-top:4px">Fases do Projeto</p>
+  <div id="int-timeline" style="display:flex;gap:4px;overflow-x:auto;margin-bottom:24px"></div>
+
+  <!-- Gráficos -->
+  <p class="sec-label">Evolução Mensal</p>
+  <div class="two-col" style="margin-bottom:24px">
+    <div class="chart-card">
+      <div class="chart-title">Custo Atual vs. Custo Internalizado (R$ mil/mês)</div>
+      <div class="chart-wrap h260"><canvas id="chartIntCustos"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Economia Gerada por Mês (R$ mil)</div>
+      <div class="chart-wrap h260"><canvas id="chartIntEco"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <p class="sec-label">Detalhamento de Custos — Set/26 a Dez/27</p>
+  <div class="table-card" style="padding:0">
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.76rem" id="int-table">
+        <thead id="int-thead"></thead>
+        <tbody id="int-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="footnote" style="margin-top:18px">
+    Premissas: Custo Cobrança Externa com crescimento de 2% a.m. · Mensageria com crescimento de 2% a.m. · Sistemas Setup one-time (Set–Dez/26) · Ramp-up equipe: Nov/26 (1 QL) → Dez/26 (4 QLs) → Jan/27+ (5 QLs) · Salário + Encargos + Comissão = R$ 4.583/QL/mês.
+  </p>
 </section>
 
 <div id="chartTooltip"></div>

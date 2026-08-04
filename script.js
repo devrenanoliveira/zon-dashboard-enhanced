@@ -170,6 +170,7 @@ function initTab(id) {
       case 'tab-performance-venc':  initPerfVenc();         break;
       case 'tab-matriz-efic':       initMatrizEficiencia(); break;
       case 'tab-assessorias':       initAssessorias();      break;
+      case 'tab-internalizacao':    initInternalizacao();   break;
     }
   } catch (err) {
     _tabError(id, err);
@@ -3594,4 +3595,228 @@ function exportarRankingPDF() {
   }
   win.document.write(html);
   win.document.close();
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 9 — INTERNALIZAÇÃO DA COBRANÇA
+// ══════════════════════════════════════════════════════════════
+let _intChartsBuilt = false;
+
+function initInternalizacao() {
+  if (_intChartsBuilt) return;
+  _intChartsBuilt = true;
+
+  // ── DADOS ──────────────────────────────────────────────────
+  const MESES     = ['Set/26','Out/26','Nov/26','Dez/26','Jan/27','Fev/27','Mar/27','Abr/27','Mai/27','Jun/27','Jul/27','Ago/27','Set/27','Out/27','Nov/27','Dez/27'];
+  const IDX26     = [0,1,2,3];
+  const IDX27     = [4,5,6,7,8,9,10,11,12,13,14,15];
+
+  const custo_atual = [326.79,333.33,339.99,346.79,353.73,360.80,368.02,375.38,382.89,390.54,398.36,406.32,414.45,422.74,431.19,439.82];
+  const custo_int   = [337.90,321.33,327.40,319.71,301.03,305.74,305.15,310.06,315.06,320.16,325.37,330.68,336.09,341.62,347.25,353.00];
+  const economia    = [-11.11,12.00,12.59,27.08,52.70,55.06,62.87,65.32,67.83,70.38,72.99,75.64,78.36,81.12,83.94,86.82];
+  const eco_pct     = [-3.4,3.6,3.7,7.8,14.9,15.3,17.1,17.4,17.7,18.0,18.3,18.6,18.9,19.2,19.5,19.7];
+
+  const ROWS_INT = [
+    { label:'Equipe Operadores',       v:[0,0,9.17,18.33,22.92,22.92,22.92,22.92,22.92,22.92,22.92,22.92,22.92,22.92,22.92,22.92] },
+    { label:'Supervisão + Controle',   v:[7,7,15,15,15,15,15,15,15,15,15,15,15,15,15,15] },
+    { label:'Custo Cobrança Externa',  v:[291.50,261.33,229.83,196.98,162.71,165.97,169.29,172.67,176.13,179.65,183.24,186.91,190.65,194.46,198.35,202.32] },
+    { label:'Sistemas Setup',          v:[11.50,4.00,9.40,9.40,9.40,9.40,0,0,0,0,0,0,0,0,0,0] },
+    { label:'Sistemas Manutenção',     v:[10.90,11.00,18.00,18.00,18.00,18.00,22.00,22.00,22.00,22.00,22.00,22.00,22.00,22.00,22.00,22.00] },
+    { label:'Mensageria (SMS, WHATS)', v:[17.00,38.00,46.00,62.00,73.00,74.46,75.95,77.47,79.02,80.60,82.21,83.85,85.53,87.24,88.99,90.77] },
+  ];
+
+  const T26_ATUAL=1346.90, T26_INT=1306.34, T26_ECO=40.57, T26_PCT=3.0;
+  const T27_ATUAL=4744.23, T27_INT=3872.41, T27_ECO=871.82, T27_PCT=18.4;
+
+  function f1(v){ return (v==null||isNaN(v))?'—':v.toFixed(1); }
+  function fPct(v){ if(v==null) return '—'; return (v>=0?'+':'')+v.toFixed(1)+'%'; }
+  function sumIdx(arr,idxs){ return idxs.reduce((s,i)=>s+(arr[i]||0),0); }
+
+  // ── KPI CARDS ───────────────────────────────────────────────
+  const kpiData = [
+    { label:'Economia anual — 2027',       value:'R$ 871,8k',    sub:'Equivalente a <strong>18,4%</strong> do custo atual projetado', color:'#10B981' },
+    { label:'Economia — Set–Dez/2026',     value:'R$ 40,6k',     sub:'Fase de implantação — <strong>3,0%</strong> de redução',       color:'var(--brand-blue)' },
+    { label:'Equipe ao final (Jan/27+)',   value:'5 operadores', sub:'Custo médio: <strong>R$ 4.583/mês</strong> (enc + com)',       color:'var(--brand-gold)' },
+    { label:'1º mês com economia positiva',value:'Out/2026',     sub:'Payback do investimento inicial de setup',                     color:'var(--brand-blue)' },
+  ];
+  document.getElementById('int-kpis').innerHTML = kpiData.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value" style="color:${k.color}">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+
+  // ── HIGHLIGHT BAR ───────────────────────────────────────────
+  const hlStyle = `background:linear-gradient(135deg,#0c3461,#0F2461);border:1px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 20px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;`;
+  const hl = [
+    { label:'Custo atual 2027',              val:'R$ 4.744,2k',  green:false },
+    { label:'Custo internalizado 2027',      val:'R$ 3.872,4k',  green:false },
+    { label:'Economia 2027',                 val:'R$ 871,8k · 18,4%', green:true },
+    { label:'Economia acumulada Set/26–Dez/27', val:'R$ 912,4k', green:true },
+    { label:'Redução mensal Dez/27 vs Set/26',  val:'−R$ 97,8k/mês', green:true },
+  ];
+  document.getElementById('int-highlight').innerHTML = `<div style="${hlStyle}">
+    <span style="font-size:1.2rem">💡</span>
+    ${hl.map((h,i) => `
+      ${i>0?'<span style="width:1px;background:rgba(255,255,255,.12);align-self:stretch"></span>':''}
+      <div style="display:flex;flex-direction:column">
+        <span style="font-size:.65rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em">${h.label}</span>
+        <span style="font-size:.92rem;font-weight:700;color:${h.green?'#10B981':'#fff'}">${h.val}</span>
+      </div>`).join('')}
+  </div>`;
+
+  // ── TIMELINE FASES ──────────────────────────────────────────
+  const fases = [
+    { period:'Set/26',      title:'Implantação',    eco:'−R$ 11,1k', desc:'Setup de 3 sistemas, supervisão contratada, 1 QL em ramp-up. Custo supera economia no 1º mês.', bg:'rgba(220,38,38,.06)', border:'rgba(220,38,38,.2)', cor:'var(--delta-neg)' },
+    { period:'Out–Nov/26',  title:'Estabilização',  eco:'+R$ 24,6k',  desc:'Economia cresce com redução da assessoria externa. 1–2 QLs ativos. Economia de 3,6% → 3,7%.', bg:'rgba(245,158,11,.06)', border:'rgba(245,158,11,.2)', cor:'#D97706' },
+    { period:'Dez/26',      title:'Aceleração',     eco:'+R$ 27,1k',  desc:'4 QLs contratados, assessoria já reduzida ~43%. Economia de 7,8% no mês.', bg:'rgba(245,158,11,.06)', border:'rgba(245,158,11,.2)', cor:'#D97706' },
+    { period:'Jan–Dez/27',  title:'Operação Plena', eco:'+R$ 871,8k', desc:'5 QLs, economia estável e crescente: 14,9% (Jan) → 19,7% (Dez).', bg:'rgba(5,150,105,.06)', border:'rgba(5,150,105,.2)', cor:'#059669' },
+  ];
+  document.getElementById('int-timeline').innerHTML = fases.map((f, i) => `
+    <div style="flex:1;min-width:150px;padding:12px 14px;border-radius:10px;background:${f.bg};border:1px solid ${f.border};position:relative;${i<fases.length-1?'margin-right:8px':''}">
+      ${i<fases.length-1?`<span style="position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem;z-index:1">→</span>`:''}
+      <div style="font-size:.63rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${f.cor};margin-bottom:3px">${f.period}</div>
+      <div style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:4px">${f.title}</div>
+      <div style="font-size:1rem;font-weight:800;color:${f.cor};margin-bottom:4px">${f.eco}</div>
+      <div style="font-size:.68rem;color:var(--text-muted);line-height:1.45">${f.desc}</div>
+    </div>`).join('');
+
+  // ── TABELA ──────────────────────────────────────────────────
+  const thStyle  = 'background:var(--surface2);color:var(--text-muted);font-weight:600;padding:7px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--border);font-size:.74rem;';
+  const th26     = 'background:rgba(59,130,246,.08);color:#2563EB;';
+  const th27     = 'background:rgba(59,130,246,.05);color:#3B82F6;';
+  const thTot    = 'background:#0F2461;color:#93C5FD;';
+
+  document.getElementById('int-thead').innerHTML = `
+    <tr>
+      <th rowspan="2" style="${thStyle}text-align:left;min-width:170px">Item</th>
+      <th colspan="4" style="${thStyle}${th26}">2026</th>
+      <th rowspan="2" style="${thStyle}${thTot}">Total<br>2026</th>
+      <th colspan="12" style="${thStyle}${th27}">2027</th>
+      <th rowspan="2" style="${thStyle}${thTot}">Total<br>2027</th>
+    </tr>
+    <tr>
+      ${['Set','Out','Nov','Dez'].map(m=>`<th style="${thStyle}${th26}">${m}</th>`).join('')}
+      ${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].map(m=>`<th style="${thStyle}${th27}">${m}</th>`).join('')}
+    </tr>`;
+
+  const tdBase  = 'padding:6px 9px;text-align:right;white-space:nowrap;color:var(--text-muted);font-size:.75rem;';
+  const tdTotal = 'background:rgba(15,36,97,.07);font-weight:700;color:var(--text);';
+  const tdPos   = 'color:#059669;font-weight:700;';
+  const tdNeg   = 'color:#DC2626;font-weight:700;';
+  const secHd   = 'background:var(--surface2);color:var(--brand-blue);font-weight:700;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:10px 9px;border-top:2px solid var(--border);';
+
+  let tbody = '';
+
+  // Situação atual
+  tbody += `<tr><td colspan="19" style="${secHd}">📊 Situação Atual — Custo Cobrança Terceirizada</td></tr>`;
+  tbody += `<tr style="border-bottom:1px solid var(--border)">
+    <td style="${tdBase}text-align:left;font-weight:700;color:var(--text)">Custo Total (R$ mil)</td>
+    ${IDX26.map(i=>`<td style="${tdBase}">${f1(custo_atual[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}">${f1(T26_ATUAL)}</td>
+    ${IDX27.map(i=>`<td style="${tdBase}">${f1(custo_atual[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}">${f1(T27_ATUAL)}</td>
+  </tr>`;
+
+  // Internalizando
+  tbody += `<tr><td colspan="19" style="${secHd}">🏢 Modelo Internalizado — Composição de Custos</td></tr>`;
+  ROWS_INT.forEach(r => {
+    tbody += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="${tdBase}text-align:left;padding-left:18px">${r.label}</td>
+      ${IDX26.map(i=>`<td style="${tdBase}">${r.v[i]?f1(r.v[i]):'—'}</td>`).join('')}
+      <td style="${tdBase}${tdTotal}">${f1(sumIdx(r.v,IDX26))}</td>
+      ${IDX27.map(i=>`<td style="${tdBase}">${r.v[i]?f1(r.v[i]):'—'}</td>`).join('')}
+      <td style="${tdBase}${tdTotal}">${f1(sumIdx(r.v,IDX27))}</td>
+    </tr>`;
+  });
+  tbody += `<tr style="border-bottom:1px solid var(--border)">
+    <td style="${tdBase}text-align:left;font-weight:700;color:var(--text)">Custo Total Internalizado (R$ mil)</td>
+    ${IDX26.map(i=>`<td style="${tdBase}font-weight:700;color:var(--text)">${f1(custo_int[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}">${f1(T26_INT)}</td>
+    ${IDX27.map(i=>`<td style="${tdBase}font-weight:700;color:var(--text)">${f1(custo_int[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}">${f1(T27_INT)}</td>
+  </tr>`;
+
+  // Economia
+  tbody += `<tr><td colspan="19" style="${secHd}">💰 Resultado — Economia Gerada</td></tr>`;
+  tbody += `<tr style="border-bottom:1px solid var(--border)">
+    <td style="${tdBase}text-align:left;font-weight:700;color:var(--text)">Economia Cobrança (R$ mil)</td>
+    ${IDX26.map(i=>`<td style="${tdBase}${economia[i]<0?tdNeg:tdPos}">${economia[i]>=0?'+':''}${f1(economia[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}color:#059669;">${'+'+f1(T26_ECO)}</td>
+    ${IDX27.map(i=>`<td style="${tdBase}${tdPos}">${'+'+f1(economia[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}color:#059669;">${'+'+f1(T27_ECO)}</td>
+  </tr>`;
+  tbody += `<tr style="border-bottom:1px solid var(--border)">
+    <td style="${tdBase}text-align:left;padding-left:18px">% sobre custo atual</td>
+    ${IDX26.map(i=>`<td style="${tdBase}${eco_pct[i]<0?'color:#DC2626':'color:#059669'}">${fPct(eco_pct[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}color:#059669;">${fPct(T26_PCT)}</td>
+    ${IDX27.map(i=>`<td style="${tdBase}color:#059669">${fPct(eco_pct[i])}</td>`).join('')}
+    <td style="${tdBase}${tdTotal}color:#059669;">${fPct(T27_PCT)}</td>
+  </tr>`;
+
+  document.getElementById('int-tbody').innerHTML = tbody;
+
+  // ── GRÁFICO: CUSTOS ─────────────────────────────────────────
+  const isDark = document.body.classList.contains('dark');
+  const gridC  = isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)';
+  const tickC  = isDark ? '#64748B' : '#94A3B8';
+
+  new Chart(document.getElementById('chartIntCustos').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: MESES,
+      datasets: [
+        { label:'Situação Atual', data:custo_atual, backgroundColor:'rgba(220,38,38,.25)', borderColor:'rgba(220,38,38,.7)', borderWidth:1.5, borderRadius:3, order:2 },
+        { label:'Internalizado',  data:custo_int,  backgroundColor:'rgba(59,130,246,.3)',  borderColor:'rgba(59,130,246,.8)', borderWidth:1.5, borderRadius:3, order:1 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ labels:{ color:tickC, font:{size:11} } },
+        tooltip:{ backgroundColor:'#1E293B', borderColor:'rgba(255,255,255,.1)', borderWidth:1, titleColor:'#F1F5F9', bodyColor:'#94A3B8',
+          callbacks:{ label: c => ` ${c.dataset.label}: R$ ${c.parsed.y.toFixed(1)}k` } }
+      },
+      scales: {
+        x:{ ticks:{color:tickC,font:{size:9}}, grid:{color:gridC} },
+        y:{ ticks:{color:tickC,font:{size:10},callback:v=>'R$'+v+'k'}, grid:{color:gridC} }
+      }
+    }
+  });
+
+  // ── GRÁFICO: ECONOMIA ───────────────────────────────────────
+  const posC = isDark ? 'rgba(16,185,129,.6)' : 'rgba(5,150,105,.5)';
+  const negC = isDark ? 'rgba(239,68,68,.6)'  : 'rgba(220,38,38,.5)';
+  const posB = isDark ? 'rgba(16,185,129,1)'  : 'rgba(5,150,105,1)';
+  const negB = isDark ? 'rgba(239,68,68,1)'   : 'rgba(220,38,38,1)';
+
+  new Chart(document.getElementById('chartIntEco').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: MESES,
+      datasets: [{
+        label:'Economia (R$ mil)',
+        data: economia,
+        backgroundColor: economia.map(v => v < 0 ? negC : posC),
+        borderColor:     economia.map(v => v < 0 ? negB : posB),
+        borderWidth:1.5, borderRadius:3,
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ display:false },
+        tooltip:{ backgroundColor:'#1E293B', borderColor:'rgba(255,255,255,.1)', borderWidth:1, titleColor:'#F1F5F9', bodyColor:'#94A3B8',
+          callbacks:{ label: c => {
+            const v = c.parsed.y, p = eco_pct[c.dataIndex];
+            return ` ${v>=0?'+':''}${v.toFixed(1)}k (${fPct(p)})`;
+          }}
+        }
+      },
+      scales: {
+        x:{ ticks:{color:tickC,font:{size:9}}, grid:{color:gridC} },
+        y:{ ticks:{color:tickC,font:{size:10},callback:v=>(v>=0?'+':'')+'R$'+v+'k'}, grid:{color:gridC} }
+      }
+    }
+  });
 }
