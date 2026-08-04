@@ -2635,17 +2635,22 @@ function initPerfVenc() {
     const mesAtualCurvaKey = meses[meses.length - 1];
 
     if (_pvVenc !== 'todos') {
-      const vData = d.vencimentos.find(v => String(v.dia) === _pvVenc);
-      const baseTrim   = _pvTrimCurve();
-      const baseD0Trim = baseTrim[d0Idx] || 1;
-      const scaleTrim  = vData && vData.mediaTrimD0 != null ? vData.mediaTrimD0 / baseD0Trim : 1;
-      const trimData   = baseTrim.map(v => v != null ? Math.min(100, +(v * scaleTrim).toFixed(2)) : null);
-      const pointTrim  = baseTrim.map((_, i) => (i === d0Idx || i === d4Idx) ? 4 : 0);
+      // Use real per-vencimento curves from curvasPorVencimento
+      const cpv = d.curvasPorVencimento || {};
+      const cpvMeses = meses.filter(m => cpv[m]?.[_pvVenc]);
+
+      // Trim: avg of all months with real per-vencimento data, except the last
+      const trimMeses = cpvMeses.slice(0, -1);
+      const trimData = curva.dias.map((_, i) => {
+        const vals = trimMeses.map(m => (cpv[m][_pvVenc] || [])[i]).filter(v => v != null);
+        return vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : null;
+      });
+      const pointTrim = curva.dias.map((_, i) => (i === d0Idx || i === d4Idx) ? 4 : 0);
 
       datasets = [];
       const legendHtml = [];
 
-      if (_pvMesSet.has('trim')) {
+      if (_pvMesSet.has('trim') && trimMeses.length > 0) {
         datasets.push({
           label: 'Média Trim.',
           data: trimData,
@@ -2670,14 +2675,12 @@ function initPerfVenc() {
       let colorIdx = 0;
       meses.forEach(m => {
         if (!_pvMesSet.has(m)) return;
-        const color       = _pvMesColors[colorIdx++ % _pvMesColors.length];
-        const baseAtual   = _pvForwardFill(curva.meses[m] || [], m);
-        const baseD0Atual = baseAtual[d0Idx] || 1;
-        const scaleAtual  = (m === mesAtualCurvaKey && vData && vData.mesD0 != null)
-          ? vData.mesD0 / baseD0Atual
-          : scaleTrim * (baseD0Atual / baseD0Trim);
-        const atualData   = baseAtual.map(v => v != null ? Math.min(100, +(v * scaleAtual).toFixed(2)) : null);
-        const pointAtual  = baseAtual.map((_, i) => (i === d0Idx || i === d4Idx) ? 5 : 0);
+        const color = _pvMesColors[colorIdx++ % _pvMesColors.length];
+        // Use actual per-vencimento curve if available; otherwise fall back to forward-filled global
+        const rawCurva = cpv[m]?.[_pvVenc] ? [...cpv[m][_pvVenc]] : _pvForwardFill(curva.meses[m] || [], m);
+        // Forward-fill trailing nulls for closed months
+        const atualData = _pvForwardFill(rawCurva, m);
+        const pointAtual = curva.dias.map((_, i) => (i === d0Idx || i === d4Idx) ? 5 : 0);
         datasets.push({
           label: m,
           data: atualData,
@@ -2701,7 +2704,7 @@ function initPerfVenc() {
       });
 
       const activeLabels = [
-        ...(_pvMesSet.has('trim') ? ['Média Trim.'] : []),
+        ...(_pvMesSet.has('trim') && trimMeses.length > 0 ? ['Média Trim.'] : []),
         ...meses.filter(m => _pvMesSet.has(m))
       ];
       tituloTexto = `Curva de Recuperação — Dia ${_pvVenc} · ${activeLabels.join(' · ')}`;
