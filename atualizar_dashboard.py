@@ -331,9 +331,12 @@ def atualizar_dashboard():
     seg_real = [gv(f"seg_{k}_real") for k in seg_keys]
     seg_proj = [gv(f"seg_{k}_proj") for k in seg_keys]
 
+    # Total de DUs do mês corrente — lido do producaoPorDU (já correto) para evitar hardcode
+    du_total_mes = dados["producaoPorDU"]["meses"].get(mes_parcial, {}).get("totalDUs", 23)
+
     # Recuperação por DU
     rec_du_vals = []
-    for i in range(1, 24):
+    for i in range(1, du_total_mes + 1):
         v = dados_map.get(f"rec_du_{i}")
         if v and v > 0:
             rec_du_vals.append({"du": i, "val": int(round(v))})
@@ -401,6 +404,7 @@ def atualizar_dashboard():
     rg["recuperacaoAtual"]    = r2(recuperado_atual)
     rg["metaMensal"]          = r2(meta_mensal)
     rg["projecaoMes"]         = r2(projecao_mes)
+    rg["diasUteisTotais"]     = du_total_mes
     rg["diasUteisDecorridos"] = dus_decorridos
     rg["eficienciaAtual"]     = efic_atual
     rg["eficienciaAnterior"]  = efic_anterior
@@ -437,6 +441,7 @@ def atualizar_dashboard():
         dados["producaoPorDU"]["meses"][mes_parcial]["dados"] = prod_dia_vals
 
     # RECUPERAÇÃO POR DU
+    dados["recuperacaoPorDU"]["totalDUs"] = du_total_mes
     if rec_du_vals:
         dados["recuperacaoPorDU"]["mesAtual"] = rec_du_vals
 

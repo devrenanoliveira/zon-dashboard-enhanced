@@ -9,7 +9,7 @@
   "resultadoGeral": {
     "metaMensal": 7007005.89,
     "recuperacaoAtual": 709720.01,
-    "diasUteisTotais": 23,
+    "diasUteisTotais": 21,
     "diasUteisDecorridos": 2,
     "eficienciaAtual": 10.13,
     "eficienciaAnterior": 6.41,
@@ -444,7 +444,7 @@
     }
   },
   "recuperacaoPorDU": {
-    "totalDUs": 23,
+    "totalDUs": 21,
     "metaMensal": 0,
     "mesAtual": [
       {
