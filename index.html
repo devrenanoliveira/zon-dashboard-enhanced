@@ -253,8 +253,9 @@
   <div id="rdu-detail-wrap">
   <div class="du-layout">
     <div class="table-card" style="margin-bottom:0">
-      <div class="table-card-header">
+      <div class="table-card-header" style="flex-wrap:wrap; gap:8px;">
         <span class="chart-title" style="margin:0" id="rdu-table-title">Detalhe por DU — Mês Atual</span>
+        <div class="filter-row" id="rdu-table-comp-filter" style="margin:0; padding:0; display:none; align-items:center; gap:6px; flex-wrap:wrap;"></div>
       </div>
       <div class="table-scroll">
         <table>
@@ -263,7 +264,7 @@
               <th>DU</th>
               <th>Entrada Dia (R$)</th>
               <th>Realizado Acum. (R$)</th>
-              <th>Comp. Mês Ant. %</th>
+              <th id="rdu-comp-col-header">Comparativo mês %</th>
               <th>Recup. Projetada</th>
               <th>ICM %</th>
             </tr>

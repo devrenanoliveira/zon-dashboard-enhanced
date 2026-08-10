@@ -1036,7 +1036,8 @@ function initProducaoDU() {
 // TAB 3 — RECUPERAÇÃO POR DU
 // ══════════════════════════════════════════════════════════════
 let _rduMes       = null;
-let _rduCompMeses = new Set(); // multi-select de meses comparativos
+let _rduCompMeses = new Set(); // multi-select de meses comparativos (gráficos)
+let _rduTableComp = null;      // mês comparativo da tabela (single-select)
 let _rduDuData    = {};
 let _rduChart1    = null;
 let _rduChart2    = null;
@@ -1079,6 +1080,47 @@ function _rduBuildCompFilter() {
       const label = m.replace('*', '');
       return `<button class="filter-btn${isActive ? ' active' : ''}" onclick="rduToggleComp('${m}')">${label}</button>`;
     }).join('');
+}
+
+function _rduBuildTableCompFilter() {
+  const container = document.getElementById('rdu-table-comp-filter');
+  if (!container) return;
+  const available = Object.keys(_rduDuData).filter(m => m !== _rduMes);
+  if (available.length === 0) {
+    container.style.display = 'none';
+    _rduTableComp = null;
+    return;
+  }
+  container.style.display = 'flex';
+  // Se o atual não está mais disponível, reseta
+  if (_rduTableComp && !available.includes(_rduTableComp)) _rduTableComp = null;
+  const noneActive = !_rduTableComp ? ' active' : '';
+  container.innerHTML =
+    '<span class="filter-label">Comparar tabela com:</span>' +
+    `<button class="filter-btn${noneActive}" onclick="rduSetTableComp(null)">Nenhum</button>` +
+    available.map(m => {
+      const isActive = m === _rduTableComp ? ' active' : '';
+      return `<button class="filter-btn${isActive}" onclick="rduSetTableComp('${m}')">${m.replace('*','')}</button>`;
+    }).join('');
+}
+
+function rduSetTableComp(mes) {
+  _rduTableComp = mes;
+  _rduBuildTableCompFilter();
+  const serie    = _rduDuData[_rduMes] || [];
+  const mesNome  = _rduMes ? _rduMes.replace('*','') : '';
+  const d        = DATA.recuperacaoPorDU;
+  const hist     = DATA.resultadoGeral.historico;
+  const isAtual  = _rduMes && DATA.meta.mesCurto && _rduMes.includes(DATA.meta.mesCurto);
+  const totalDUs = isAtual ? d.totalDUs : serie.length;
+  const histEntry = hist.find(h => h.mes === _rduMes || h.mes.replace('*','') === _rduMes.replace('*',''));
+  const metaMes   = histEntry?.meta || d.metaMensal || 0;
+  const serieRef  = mes ? (_rduDuData[mes] || null) : null;
+  const mesRefNome = mes ? mes.replace('*','') : null;
+  // Atualiza o header da coluna
+  const colHeader = document.getElementById('rdu-comp-col-header');
+  if (colHeader) colHeader.textContent = mes ? `vs. ${mes.replace('*','')} %` : 'Comparativo mês %';
+  _rduRenderTabela(serie, serieRef, metaMes, totalDUs, mesNome, mesRefNome);
 }
 
 function _rduUpdateMes() {
@@ -1144,8 +1186,12 @@ function _rduUpdateMes() {
       </div>
     `;
 
-    _rduRenderTabela(serie, null, metaMes, totalDUs, mesNome, null);
+    // Reseta comparativo de tabela quando muda de mês
+    _rduTableComp = null;
+    const serieRefTabela  = _rduTableComp ? (_rduDuData[_rduTableComp] || null) : null;
+    _rduRenderTabela(serie, serieRefTabela, metaMes, totalDUs, mesNome, null);
     _rduBuildCompFilter();
+    _rduBuildTableCompFilter();
     _rduRenderCharts(serie, mesNome);
 
   } else {
@@ -1341,13 +1387,22 @@ function _rduRenderCharts(serie, mesNome) {
     datasets2.push({ label: c.nome, data: acumC, borderColor: color, borderWidth:2, pointRadius:3, fill:false, tension:0.3, borderDash:[5,4], spanGaps:false });
   });
 
+  // Calcula suggestedMin para "afastar" linhas do zero e melhorar legibilidade
+  const allAcumVals = acumSerie.filter(v => v != null);
+  compEntries.forEach(c => {
+    let sc2 = 0;
+    allDUs.forEach(du => { const fc = c.dados.find(x => x.du === du); if (fc) { sc2 += fc.val; allAcumVals.push(sc2); } });
+  });
+  const minAcum  = allAcumVals.length > 0 ? Math.min(...allAcumVals) : 0;
+  const sugMin2  = Math.max(0, Math.floor(minAcum * 0.6));
+
   _rduChart2 = new Chart(document.getElementById('chartRecupAcum'), {
     type: 'line',
     data: { labels: allDUs.map(du=>'DU '+du), datasets: datasets2 },
     options: {
       ...baseOptions(),
       plugins: { ...baseOptions().plugins, tooltip: { ...baseOptions().plugins.tooltip, ...tooltipCb } },
-      scales: { ...baseOptions().scales, y: { ...baseOptions().scales.y, ticks: brlTick } }
+      scales: { ...baseOptions().scales, y: { ...baseOptions().scales.y, ticks: brlTick, beginAtZero: false, suggestedMin: sugMin2 } }
     }
   });
   makeLegend('legendRecupAcum', [
@@ -1362,6 +1417,7 @@ function initRecupDU() {
 
   _rduDuData    = {};
   _rduCompMeses = new Set();
+  _rduTableComp = null;
 
   // 1. Mês atual (parcial) → mesAtual
   const parcialH = hist.find(h => h.mes.includes('*'));
