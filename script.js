@@ -3253,18 +3253,22 @@ function initAssessorias() {
         <div class="kpi-sub">${fmt.pct(pctMeta)} da meta (${fmt.brl(ass.meta)})</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(pctMeta,100)}%;background:${barColor}"></div></div>
       </div>
-      <div style="margin-top:12px;display:flex;gap:18px;flex-wrap:wrap">
+      <div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap">
         <div>
           <div class="kpi-label">Efic. Atual</div>
-          <div style="font-size:.95rem;font-weight:700;color:${icmColor(icm)}">${fmt.pct(ass.eficAtual, 2)}</div>
+          <div style="font-size:.95rem;font-weight:700;color:${icmColor(ass.icmEficAtual)}">${fmt.pct(ass.eficAtual, 2)}</div>
         </div>
         <div>
           <div class="kpi-label">Meta Efic.</div>
           <div style="font-size:.95rem;font-weight:600">${fmt.pct(ass.metaEfic, 2)}</div>
         </div>
         <div>
-          <div class="kpi-label">ICM</div>
-          <div style="font-size:.95rem;font-weight:700;color:${icmColor(icm)}">${icm != null ? fmt.pct(icm) : '—'}</div>
+          <div class="kpi-label">ICM Efic.</div>
+          <div style="font-size:.95rem;font-weight:700;color:${icmColor(ass.icmEficAtual)}">${ass.icmEficAtual != null ? fmt.pct(ass.icmEficAtual) : '—'}</div>
+        </div>
+        <div>
+          <div class="kpi-label">Proj. Efic.</div>
+          <div style="font-size:.95rem;font-weight:700;color:${icmColor(ass.icmEficProj)}">${fmt.pct(ass.eficProj, 2)}</div>
         </div>
       </div>
     </div>`;
