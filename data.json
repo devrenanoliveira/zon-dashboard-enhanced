@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "10/08/2026, 13:32",
+    "lastUpdated": "10/08/2026, 13:45",
     "mesReferencia": "Agosto 2026",
     "mesAnterior": "Jul/26",
     "mediaReferencia": "Mai–Jul 2026",
@@ -2478,7 +2478,7 @@
         "meta": null,
         "recuperado": null,
         "projecao": null,
-        "metaEfic": null,
+        "metaEfic": 0.99,
         "eficAtual": null,
         "icmEficAtual": null,
         "eficProj": null,
