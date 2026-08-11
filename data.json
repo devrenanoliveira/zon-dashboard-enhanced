@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "11/08/2026, 11:46",
+    "lastUpdated": "11/08/2026, 14:11",
     "mesReferencia": "Agosto 2026",
     "mesAnterior": "Jul/26",
     "mediaReferencia": "Mai–Jul 2026",
@@ -931,14 +931,14 @@
   "performanceVencimentos": {
     "resumo": {
       "d0": {
-        "percentual": null,
-        "vsMedia": null,
-        "variacao": 0
+        "percentual": 53.3,
+        "vsMedia": 54.68,
+        "variacao": -1.38
       },
       "d4": {
-        "percentual": null,
-        "vsMedia": null,
-        "variacao": 0
+        "percentual": 66.67,
+        "vsMedia": 68.78,
+        "variacao": -2.11
       },
       "emMaturacao": {
         "atual": 3,
@@ -951,23 +951,23 @@
         "status": "maturado",
         "parcial": false,
         "diaCorrido": null,
-        "mesD0": null,
-        "mesD4": null,
+        "mesD0": 47.93,
+        "mesD4": 66.67,
         "mediaTrimD0": 52.68,
         "mediaTrimD4": 65.96,
-        "varD0": null,
-        "varD4": null
+        "varD0": -4.75,
+        "varD4": 0.71
       },
       {
         "dia": 5,
         "status": "maturado",
         "parcial": false,
         "diaCorrido": null,
-        "mesD0": null,
+        "mesD0": 58.67,
         "mesD4": null,
         "mediaTrimD0": 56.69,
         "mediaTrimD4": 71.59,
-        "varD0": null,
+        "varD0": 1.98,
         "varD4": null
       },
       {
@@ -977,8 +977,8 @@
         "diaCorrido": 1,
         "mesD0": null,
         "mesD4": null,
-        "mediaTrimD0": 59.29,
-        "mediaTrimD4": 68.03,
+        "mediaTrimD0": 58.95,
+        "mediaTrimD4": 67.68,
         "varD0": null,
         "varD4": null
       },
@@ -989,8 +989,8 @@
         "diaCorrido": null,
         "mesD0": null,
         "mesD4": null,
-        "mediaTrimD0": 56.35,
-        "mediaTrimD4": 63.87,
+        "mediaTrimD0": 55.7,
+        "mediaTrimD4": 63.18,
         "varD0": null,
         "varD4": null
       },
@@ -1001,8 +1001,8 @@
         "diaCorrido": null,
         "mesD0": null,
         "mesD4": null,
-        "mediaTrimD0": 44.61,
-        "mediaTrimD4": 55.78,
+        "mediaTrimD0": 44.56,
+        "mediaTrimD4": 55.73,
         "varD0": null,
         "varD4": null
       },
@@ -1013,8 +1013,8 @@
         "diaCorrido": null,
         "mesD0": null,
         "mesD4": null,
-        "mediaTrimD0": 45.25,
-        "mediaTrimD4": 56.54,
+        "mediaTrimD0": 45.2,
+        "mediaTrimD4": 56.46,
         "varD0": null,
         "varD4": null
       }
