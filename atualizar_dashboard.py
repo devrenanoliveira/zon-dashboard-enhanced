@@ -235,6 +235,87 @@ def processar_performance_vencimentos(dados):
     print(f"✅ Performance processada: {len(vencimentos)} vencimentos | "
           f"D0={d0_pct}% | D4={d4_pct}% | Em maturação: {em_mat_atual}/{em_mat_total}")
 
+    # ── Curva de recuperação (D-13 a D+20) ──────────────────────────
+    MESES_PT_CV = {1:'Jan',2:'Fev',3:'Mar',4:'Abr',5:'Mai',6:'Jun',
+                   7:'Jul',8:'Ago',9:'Set',10:'Out',11:'Nov',12:'Dez'}
+
+    def _mk(periodo):
+        return f"{MESES_PT_CV[periodo.month]}/{str(periodo.year)[2:]}"
+
+    def parse_curva_val(v):
+        """Converte decimal 0-1 → % (0-100). Retorna None se inválido ou zero."""
+        try:
+            s = str(v).strip()
+            if s in ('', 'nan', 'None'):
+                return None
+            f = float(s.replace('%', '').replace(',', '.'))
+            if f <= 0:
+                return None
+            return round(f * 100, 2) if f <= 1.5 else round(f, 2)
+        except Exception:
+            return None
+
+    dias_esperados = pv['curvaRecuperacao']['dias']
+
+    # Mapeia dia_offset → índice de coluna no df
+    col_curva = {}
+    for col_idx, h in enumerate(header_dias):
+        try:
+            d = int(float(h))
+            if d in dias_esperados:
+                col_curva[d] = col_idx
+        except (ValueError, TypeError):
+            pass
+    print(f"📈 Colunas de curva mapeadas: {sorted(col_curva.keys())} ({len(col_curva)} de {len(dias_esperados)} dias)")
+
+    if 'curvasPorVencimento' not in pv:
+        pv['curvasPorVencimento'] = {}
+
+    mes_atual_key = _mk(mes_atual)
+
+    for periodo in sorted(df['mes_ano'].unique()):
+        mk_p = _mk(periodo)
+        df_m = df[df['mes_ano'] == periodo]
+
+        # Curva agregada: média de todos os vencimentos do mês
+        curva_agr = []
+        for d_off in dias_esperados:
+            if d_off not in col_curva:
+                curva_agr.append(None)
+            else:
+                ci = col_curva[d_off]
+                vals = [parse_curva_val(v) for v in df_m[ci] if parse_curva_val(v) is not None]
+                curva_agr.append(round(sum(vals) / len(vals), 2) if vals else None)
+
+        # Curva por dia de vencimento
+        cpv_mes = {}
+        for dia in DIAS_VENC:
+            df_dia = df_m[df_m['dia'] == dia]
+            if df_dia.empty:
+                continue
+            curva_dia = []
+            for d_off in dias_esperados:
+                if d_off not in col_curva:
+                    curva_dia.append(None)
+                else:
+                    ci = col_curva[d_off]
+                    vals = [parse_curva_val(v) for v in df_dia[ci] if parse_curva_val(v) is not None]
+                    curva_dia.append(round(sum(vals) / len(vals), 2) if vals else None)
+            cpv_mes[str(dia)] = curva_dia
+
+        if mk_p == mes_atual_key:
+            # Mês atual: sempre sobrescreve (dados parciais crescem a cada execução)
+            pv['curvaRecuperacao']['meses'][mk_p] = curva_agr
+            pv['curvasPorVencimento'][mk_p] = cpv_mes
+        else:
+            # Meses passados: só escreve se ainda não existir (preserva ajuste manual)
+            if mk_p not in pv['curvaRecuperacao']['meses']:
+                pv['curvaRecuperacao']['meses'][mk_p] = curva_agr
+            if mk_p not in pv['curvasPorVencimento']:
+                pv['curvasPorVencimento'][mk_p] = cpv_mes
+
+    print(f"✅ Curvas gravadas: {list(pv['curvaRecuperacao']['meses'].keys())}")
+
 # ─── PRINCIPAL ────────────────────────────────────────────────────
 def atualizar_dashboard():
     print("📥 Lendo JSON_EXPORT do Google Sheets...")
