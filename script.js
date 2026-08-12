@@ -2639,7 +2639,11 @@ function initPerfVenc() {
 
   // ── Curva de Recuperação ─────────────────────────────────────────
   const curva = d.curvaRecuperacao;
-  const meses  = Object.keys(curva.meses);
+  const _MORD = {Jan:1,Fev:2,Mar:3,Abr:4,Mai:5,Jun:6,Jul:7,Ago:8,Set:9,Out:10,Nov:11,Dez:12};
+  const meses = Object.keys(curva.meses).sort((a, b) => {
+    const [ma, ya] = a.split('/'); const [mb, yb] = b.split('/');
+    return (+ya - +yb) || (_MORD[ma] - _MORD[mb]);
+  });
   const curvaColors = [COLORS.green, COLORS.blue, COLORS.gold, COLORS.orange];
   const mesAtivo = new Set(meses.filter(m => '20' + m.split('/')[1] === _pvAnoVis));
   const d0Idx = curva.dias.indexOf(0);
