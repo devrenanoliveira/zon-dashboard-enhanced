@@ -2668,7 +2668,7 @@ function initPerfVenc() {
   }
 
   function _pvTrimCurve() {
-    const mesesTrim = meses.slice(0, -1);
+    const mesesTrim = meses.slice(-4, -1); // últimos 3 meses fechados = trimestre
     return curva.dias.map((_, i) => {
       const vals = mesesTrim.map(m => curva.meses[m][i]).filter(v => v != null);
       return vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : null;
@@ -2711,8 +2711,8 @@ function initPerfVenc() {
       const cpv = d.curvasPorVencimento || {};
       const cpvMeses = meses.filter(m => cpv[m]?.[_pvVenc]);
 
-      // Trim: avg of all months with real per-vencimento data, except the last
-      const trimMeses = cpvMeses.slice(0, -1);
+      // Trim: últimos 3 meses fechados com dado disponível para este vencimento
+      const trimMeses = cpvMeses.slice(-4, -1);
       const trimData = curva.dias.map((_, i) => {
         const vals = trimMeses.map(m => (cpv[m][_pvVenc] || [])[i]).filter(v => v != null);
         return vals.length ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(2) : null;
