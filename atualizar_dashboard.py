@@ -243,15 +243,24 @@ def processar_performance_vencimentos(dados):
         return f"{MESES_PT_CV[periodo.month]}/{str(periodo.year)[2:]}"
 
     def parse_curva_val(v):
-        """Converte decimal 0-1 → % (0-100). Retorna None se inválido ou zero."""
+        """Converte valor da planilha → % (0-100).
+        Se a célula já tem sinal de %, o número é percentual direto (ex: '1,28%' → 1.28).
+        Caso contrário, trata como decimal 0-1 (ex: 0.75 → 75.0).
+        Retorna None se inválido, zero ou > 100%.
+        """
         try:
             s = str(v).strip()
             if s in ('', 'nan', 'None'):
                 return None
+            is_pct_str = '%' in s
             f = float(s.replace('%', '').replace(',', '.'))
             if f <= 0:
                 return None
-            return round(f * 100, 2) if f <= 1.5 else round(f, 2)
+            if is_pct_str:
+                result = round(f, 2)          # já está em %, usar direto
+            else:
+                result = round(f * 100, 2) if f <= 1.5 else round(f, 2)
+            return result if result <= 100 else None
         except Exception:
             return None
 
