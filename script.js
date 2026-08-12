@@ -2497,6 +2497,7 @@ let _pvMesSet = null;
 let _pvTabelaMes = null;
 let _pvBuildCurva = null;
 let _pvRenderTabela = null;
+let _pvAnoVis = '2026';
 
 function pvSetVenc(v) {
   _pvVenc = v;
@@ -2640,13 +2641,16 @@ function initPerfVenc() {
   const curva = d.curvaRecuperacao;
   const meses  = Object.keys(curva.meses);
   const curvaColors = [COLORS.green, COLORS.blue, COLORS.gold, COLORS.orange];
-  const mesAtivo = new Set(meses);
+  const mesAtivo = new Set(meses.filter(m => '20' + m.split('/')[1] === _pvAnoVis));
   const d0Idx = curva.dias.indexOf(0);
   const d4Idx = curva.dias.indexOf(4);
   // Use current month key from meta so closed months (including the last in the array) get forward-filled
   const curvaAtualKey = (DATA.meta.mesCurto || 'Ago') + '/26';
 
-  if (_pvMesSet === null) _pvMesSet = new Set(['trim', meses[meses.length - 1]]);
+  if (_pvMesSet === null) {
+    const meses2026 = meses.filter(m => '20' + m.split('/')[1] === '2026');
+    _pvMesSet = new Set(['trim', ...meses2026]);
+  }
 
   const filterContainer = document.getElementById('curvaMesesFilter');
   const _pvMesColors = [COLORS.blue, COLORS.green, COLORS.orange, COLORS.aqua];
@@ -2672,12 +2676,23 @@ function initPerfVenc() {
   }
 
   function _pvRebuildMesFilter() {
+    const anos = [...new Set(meses.map(m => '20' + m.split('/')[1]))].sort();
+    const mesDoAno = meses.filter(m => '20' + m.split('/')[1] === _pvAnoVis);
+    const anoRow =
+      `<span class="filter-label">Ano:</span>` +
+      anos.map(a => `<button class="filter-btn ${a === _pvAnoVis ? 'active' : ''}" data-pvano="${a}">${a}</button>`).join('') +
+      `<span style="margin-left:10px;margin-right:6px;opacity:.25">|</span>` +
+      `<button class="filter-btn" data-pvselall="1" style="font-size:.72rem;padding:2px 8px">Sel. todos</button>` +
+      `<button class="filter-btn" data-pvselall="0" style="font-size:.72rem;padding:2px 8px">Limpar</button>` +
+      `<div style="margin:5px 0 3px"></div>`;
     if (_pvVenc === 'todos') {
-      filterContainer.innerHTML = '<span class="filter-label">Meses:</span>' +
-        meses.map(m => `<button class="filter-btn ${mesAtivo.has(m) ? 'active' : ''}" data-pvmes="${m}">${m}</button>`).join('');
+      filterContainer.innerHTML = anoRow +
+        `<span class="filter-label">Meses:</span>` +
+        mesDoAno.map(m => `<button class="filter-btn ${mesAtivo.has(m) ? 'active' : ''}" data-pvmes="${m}">${m}</button>`).join('');
     } else {
-      const opts = ['trim', ...meses];
-      filterContainer.innerHTML = '<span class="filter-label">Meses:</span>' +
+      const opts = ['trim', ...mesDoAno];
+      filterContainer.innerHTML = anoRow +
+        `<span class="filter-label">Meses:</span>` +
         opts.map(m => `<button class="filter-btn ${_pvMesSet.has(m) ? 'active' : ''}" data-pvmes="${m}">${m === 'trim' ? 'Média Trim.' : m}</button>`).join('');
     }
   }
@@ -2832,7 +2847,31 @@ function initPerfVenc() {
 
   filterContainer.addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
-    if (!btn || !btn.dataset.pvmes) return;
+    if (!btn) return;
+
+    // Year pill
+    if (btn.dataset.pvano) {
+      _pvAnoVis = btn.dataset.pvano;
+      _pvRebuildMesFilter();
+      return;
+    }
+
+    // Select all / Clear
+    if (btn.dataset.pvselall !== undefined) {
+      const selAll = btn.dataset.pvselall === '1';
+      if (_pvVenc === 'todos') {
+        if (selAll) meses.forEach(m => mesAtivo.add(m));
+        else { const keep = meses[meses.length - 1]; mesAtivo.clear(); mesAtivo.add(keep); }
+      } else {
+        if (selAll) { meses.forEach(m => _pvMesSet.add(m)); _pvMesSet.add('trim'); }
+        else { const keep = meses[meses.length - 1]; _pvMesSet.clear(); _pvMesSet.add('trim'); _pvMesSet.add(keep); }
+      }
+      buildCurvaChart();
+      return;
+    }
+
+    // Month chip
+    if (!btn.dataset.pvmes) return;
     const m = btn.dataset.pvmes;
     if (_pvVenc === 'todos') {
       if (mesAtivo.has(m)) { if (mesAtivo.size > 1) { mesAtivo.delete(m); btn.classList.remove('active'); } }
