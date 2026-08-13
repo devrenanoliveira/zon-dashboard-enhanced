@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "13/08/2026, 09:55",
+    "lastUpdated": "13/08/2026, 10:32",
     "mesReferencia": "Agosto 2026",
     "mesAnterior": "Jul/26",
     "mediaReferencia": "Mai–Jul 2026",
@@ -8,13 +8,13 @@
   },
   "resultadoGeral": {
     "metaMensal": 7007005.89,
-    "recuperacaoAtual": 2389940.72,
+    "recuperacaoAtual": 2481656.37,
     "diasUteisTotais": 21,
-    "diasUteisDecorridos": 7,
-    "eficienciaAtual": 34.11,
+    "diasUteisDecorridos": 8,
+    "eficienciaAtual": 35.42,
     "eficienciaAnterior": 6.41,
-    "taxaRecuperacao": 5.72,
-    "projecaoMes": 6273594.39,
+    "taxaRecuperacao": 5.94,
+    "projecaoMes": 6514347.97,
     "historico": [
       {
         "mes": "Jan/26",
@@ -80,18 +80,18 @@
       },
       {
         "mes": "Ago/26*",
-        "recuperado": 2389940.72,
+        "recuperado": 2481656.37,
         "meta": 7007005.89,
-        "recupPre": 2162304.52,
+        "recupPre": 2254020.17,
         "recupPos": 227636.2,
         "diasUteis": 21
       }
     ],
-    "eficAtualMes": 2.27,
-    "eficProjMes": 5.72,
+    "eficAtualMes": 2.36,
+    "eficProjMes": 5.94,
     "metaEficMes": 6.25,
-    "icmEficAtual": 36.32,
-    "icmEficProj": 91.52,
+    "icmEficAtual": 37.76,
+    "icmEficProj": 95.04,
     "eficienciaHistorico": [
       {
         "mes": "Jan/26",
@@ -151,14 +151,14 @@
       },
       {
         "mes": "Ago/26*",
-        "eficAtual": 2.27,
-        "eficProj": 5.72,
+        "eficAtual": 2.36,
+        "eficProj": 5.94,
         "metaEfic": 6.25,
-        "icmEficAtual": 36.32,
-        "icmEficProj": 91.52
+        "icmEficAtual": 37.76,
+        "icmEficProj": 95.04
       }
     ],
-    "diarioAtual": 204558
+    "diarioAtual": 137521
   },
   "producaoPorDU": {
     "meses": {
@@ -506,6 +506,10 @@
       {
         "du": 7,
         "val": 204558
+      },
+      {
+        "du": 8,
+        "val": 137521
       }
     ],
     "mesAnterior": [],
@@ -697,7 +701,7 @@
     "preJuizo": {
       "valor": 28708972.02,
       "percentual": 27.29,
-      "taxaRec": 7.53,
+      "taxaRec": 7.85,
       "variacao": 0
     },
     "posJuizo": {
@@ -706,7 +710,7 @@
       "taxaRec": 0.3,
       "variacao": 0
     },
-    "projecaoRecuperacao": 6273594.39,
+    "projecaoRecuperacao": 6514347.97,
     "evolucao": [
       {
         "mes": "Jan",
@@ -754,13 +758,13 @@
         "faixa": "B (05–30d)",
         "valor": 4436109.56,
         "pct": 4.22,
-        "taxaRec": 37.61
+        "taxaRec": 39.29
       },
       {
         "faixa": "C (31–65d)",
         "valor": 5816586.98,
         "pct": 5.53,
-        "taxaRec": 4.87
+        "taxaRec": 5.17
       },
       {
         "faixa": "D (66–90d)",
@@ -857,12 +861,12 @@
         {
           "valor": 4436109.56,
           "pct": 4.22,
-          "taxaRec": 37.61
+          "taxaRec": 39.29
         },
         {
           "valor": 5816586.98,
           "pct": 5.53,
-          "taxaRec": 4.87
+          "taxaRec": 5.17
         },
         {
           "valor": 2668585.53,
@@ -916,26 +920,26 @@
       469562.77
     ],
     "recuperado": [
-      1668377.64,
-      355880.03,
+      1743125.21,
+      372848.11,
       138046.85,
       227636.2
     ],
     "projecao": [
-      4379491.31,
-      934185.08,
+      4575703.68,
+      978726.29,
       362372.98,
       597545.03
     ],
     "icm": [
-      84.33,
-      88.41,
+      88.11,
+      92.63,
       126.1,
       127.26
     ],
     "taxa": [
-      37.61,
-      4.19,
+      39.29,
+      4.4,
       0.88,
       0.3
     ]
@@ -11294,8 +11298,8 @@
         0.35
       ],
       "Ago": [
-        37.61,
-        4.87,
+        39.29,
+        5.17,
         2.71,
         1.18,
         0.92,
@@ -11317,8 +11321,8 @@
       0.36
     ],
     "varTrim": [
-      -12.68,
-      22.05,
+      -8.77,
+      29.36,
       -11.0,
       21.61,
       64.76,
@@ -11328,8 +11332,8 @@
       16.99
     ],
     "icmMeta": [
-      84.33,
-      114.44,
+      88.11,
+      121.31,
       85.56,
       104.81,
       140.0,
@@ -11346,11 +11350,11 @@
       "Mai": 6.95,
       "Jun": 6.05,
       "Jul": 6.41,
-      "Ago": 2.27
+      "Ago": 2.36
     },
     "globalMeta": 6.25,
-    "globalVarTrim": -11.6,
-    "globalIcmMeta": 91.52,
+    "globalVarTrim": -8.21,
+    "globalIcmMeta": 95.04,
     "metaHistorico": {
       "Jun": [
         66.0,
@@ -11380,8 +11384,8 @@
       "Jul": 5.69
     },
     "projAtual": [
-      53.13,
-      18.31,
+      55.51,
+      19.41,
       3.85,
       2.83,
       2.38,
@@ -11390,7 +11394,7 @@
       0.56,
       0.37
     ],
-    "globalProjAtual": 5.72
+    "globalProjAtual": 5.94
   },
   "assessorias": {
     "lista": [
