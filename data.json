@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "14/08/2026, 09:51",
+    "lastUpdated": "14/08/2026, 10:13",
     "mesReferencia": "Agosto 2026",
     "mesAnterior": "Jul/26",
     "mediaReferencia": "Mai–Jul 2026",
@@ -10,7 +10,7 @@
     "metaMensal": 7007005.89,
     "recuperacaoAtual": 2611392.06,
     "diasUteisTotais": 21,
-    "diasUteisDecorridos": 8,
+    "diasUteisDecorridos": 9,
     "eficienciaAtual": 37.27,
     "eficienciaAnterior": 6.41,
     "taxaRecuperacao": 5.56,
@@ -158,7 +158,7 @@
         "icmEficProj": 88.96
       }
     ],
-    "diarioAtual": 137521
+    "diarioAtual": 129736
   },
   "producaoPorDU": {
     "meses": {
@@ -470,6 +470,10 @@
           {
             "du": 12,
             "val": 69466.06
+          },
+          {
+            "du": 13,
+            "val": 50171.08
           }
         ]
       }
@@ -510,6 +514,10 @@
       {
         "du": 8,
         "val": 137521
+      },
+      {
+        "du": 9,
+        "val": 129736
       }
     ],
     "mesAnterior": [],
