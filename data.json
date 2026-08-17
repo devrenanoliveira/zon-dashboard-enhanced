@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "17/08/2026, 08:51",
+    "lastUpdated": "17/08/2026, 08:53",
     "mesReferencia": "Agosto 2026",
     "mesAnterior": "Jul/26",
     "mediaReferencia": "Mai–Jul 2026",
@@ -11425,15 +11425,15 @@
       {
         "id": "afr",
         "nome": "Fácil Resultado",
-        "carteira": 10447272.96,
-        "meta": 652954.56,
+        "carteira": 104447272.96,
+        "meta": 6527954.56,
         "recuperado": 3155314.92,
         "projecao": 6626161.33,
         "metaEfic": 6.25,
-        "eficAtual": 30.2,
-        "icmEficAtual": 483.2,
-        "eficProj": 63.42,
-        "icmEficProj": 1014.72
+        "eficAtual": 3.02,
+        "icmEficAtual": 48.32,
+        "eficProj": 6.34,
+        "icmEficProj": 101.44
       },
       {
         "id": "apm",
@@ -11463,12 +11463,12 @@
       }
     ],
     "totais": {
-      "carteira": 13558823.78,
-      "meta": 672064.71,
+      "carteira": 107558823.78,
+      "meta": 6547064.71,
       "recuperado": 3156143.78,
       "projecao": 6627901.94,
-      "eficAtual": 23.28,
-      "eficProj": 48.88
+      "eficAtual": 2.93,
+      "eficProj": 6.16
     }
   }
 }
